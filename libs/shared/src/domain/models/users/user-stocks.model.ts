@@ -1,0 +1,34 @@
+export interface UserStocks {
+  Id: number;
+  DateRegister: Date | null;
+  NickName: string | null;
+  Name: string | null;
+  Surname: string | null;
+  Phone: string | null;
+  GoogleName: string | null;
+  GoogleSurname: string | null;
+  Email: string;
+  Password: string | null;
+  GoogleId: string | null;
+  GoogleAvatar: string | null;
+  GoogleGender: string | null;
+  FacebookName: string | null;
+  FacebookId: string | null;
+  Company: string | null;
+  Country: number | null;
+  Address: string | null;
+  PostalCode: string | null;
+  City: string | null;
+  Admin: boolean;
+  Publisher: boolean;
+  Token: string | null;
+  TokenApp: string | null;
+  Ip: string | null;
+  Browser: string | null;
+  Language: string | null;
+  ActiveCampaign: boolean;
+  Bitrix: boolean | null;
+  RestoreDate: Date | null;
+  RestoreKey: string | null;
+  PushWooshId: string | null;
+}

@@ -1,0 +1,17 @@
+export enum ResourcesEnum {
+  Agents = 'agents',
+  Claims = 'claims',
+  Topics = 'topics',
+  Stablecoins = 'stablecoins',
+  Transactions = 'transactions',
+  Licenses = 'licenses',
+  Nfts = 'nfts',
+  Users = 'users',
+  Profits = 'profits',
+  Investors = 'investors',
+  Projects = 'projects',
+  Payments = 'payments',
+  Royalties = 'royalties',
+  Tokens = 'tokens',
+  SmartWallets = 'smart-wallets',
+}

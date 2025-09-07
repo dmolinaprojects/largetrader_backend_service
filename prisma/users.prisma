@@ -1,0 +1,997 @@
+generator users-client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/users-client"
+}
+
+datasource users {
+  provider = "mysql"
+  url      = env("USERS_DATABASE_URL")
+}
+
+model AAA_Countries {
+  Id        Int     @id @default(autoincrement())
+  Name      String  @default("") @users.VarChar(255)
+  Code      String  @users.VarChar(2)
+  Code3Char String  @users.VarChar(3)
+  PhoneCode String  @users.VarChar(10)
+  Ue        Boolean @default(false)
+}
+
+model AAA_Differenza {
+  Id      Int    @id @default(autoincrement())
+  Name    String @users.VarChar(255)
+  Surname String @users.VarChar(255)
+  Email   String @users.VarChar(255)
+  Phone   String @users.VarChar(255)
+}
+
+model ArticleThemes {
+  Id       Int    @id @default(autoincrement())
+  Language String @users.VarChar(5)
+  Name     String @users.VarChar(255)
+  Content  String @users.LongText
+}
+
+model Articles {
+  Id               Int      @id @default(autoincrement())
+  IdRelatedArticle Int?
+  IdGroup          Int      @default(0)
+  IdAuthor         Int      @default(0)
+  DateInsert       DateTime @users.DateTime(0)
+  Title            String?  @users.LongText
+  Description      String?  @users.LongText
+  Keywords         String?  @users.LongText
+  Content          String?  @users.LongText
+  FirstH2          String   @users.LongText
+  FirstMedia       String   @users.LongText
+  Url              String   @users.LongText
+  Published        Boolean  @default(false)
+  PublicWebsite    Boolean
+  Language         String   @users.VarChar(10)
+}
+
+model ArticlesGroups {
+  Id            Int      @id @default(autoincrement())
+  Name          String?  @users.VarChar(255)
+  NameEn        String   @default("") @users.VarChar(255)
+  NameEs        String   @default("") @users.VarChar(255)
+  Url           String   @default("") @users.VarChar(255)
+  FreeUrl       String   @default("") @users.VarChar(255)
+  UrlEn         String   @default("") @users.VarChar(255)
+  FreeUrlEn     String   @default("") @users.VarChar(255)
+  UrlEs         String   @default("") @users.VarChar(255)
+  FreeUrlEs     String   @default("") @users.VarChar(255)
+  Title         String   @default("") @users.LongText
+  Description   String   @default("") @users.LongText
+  Keywords      String   @default("") @users.LongText
+  TitleEn       String   @default("") @users.LongText
+  DescriptionEn String   @default("") @users.LongText
+  KeywordsEn    String   @default("") @users.LongText
+  TitleEs       String   @default("") @users.LongText
+  DescriptionEs String   @default("") @users.LongText
+  KeywordsEs    String   @default("") @users.LongText
+  Logged        Boolean? @default(false)
+  Unlogged      Boolean  @default(false)
+  Admin         Boolean  @default(false)
+  Product       Boolean  @default(false)
+  Maps          Boolean  @default(false)
+  PageRows      Int      @default(0)
+  PageColumns   Int      @default(0)
+  DaysToFree    Int      @default(0)
+}
+
+model ArticlesGroupsVsProducts {
+  Id        Int  @id @default(autoincrement())
+  IdGroup   Int?
+  IdProduct Int?
+}
+
+model Countries {
+  Id        Int     @id @default(autoincrement())
+  Name      String  @default("") @users.VarChar(255)
+  Code      String  @unique(map: "Code") @users.VarChar(2)
+  Code3Char String  @users.VarChar(3)
+  PhoneCode String  @users.VarChar(10)
+  Ue        Boolean @default(false)
+}
+
+model DeveloperManual {
+  Id            Int    @id @default(autoincrement())
+  ManualPath    String @users.LongText
+  Tag           String @users.VarChar(255)
+  Title         String @users.LongText
+  File          String @users.LongText
+  FileExtension String @users.VarChar(50)
+  Comments      String @users.LongText
+  Checksum      String @users.VarChar(100)
+  Sequence      Int
+}
+
+model DeveloperManualTags {
+  Id    Int    @id @default(autoincrement())
+  Tag   String @users.VarChar(255)
+  Title String @users.LongText
+}
+
+model Events {
+  Id        Int       @id @default(autoincrement())
+  DateTime  DateTime? @users.DateTime(0)
+  Title     String?   @users.LongText
+  Content   String?   @users.LongText
+  Url       String?   @users.LongText
+  Type      String?   @users.VarChar(20)
+  Language  String?   @users.VarChar(10)
+  Published Boolean
+}
+
+model IbkrOrders {
+  Id                 Int      @id @default(autoincrement())
+  IdUser             Int
+  IdOrder            Int
+  IdRequest          Int
+  Direction          String   @users.VarChar(5)
+  OperationType      String   @users.VarChar(5)
+  Price              Float
+  Quantity           Float
+  TillDate           String   @users.VarChar(10)
+  MarketPrice        Float
+  Status             String   @users.VarChar(20)
+  OpenDate           DateTime @users.DateTime(0)
+  OpenPrice          Float
+  CloseDate          DateTime @users.DateTime(0)
+  ClosePrice         Float
+  Replied            Boolean
+  ClosedOrDuplicated Boolean
+}
+
+model IbkrOrdersLegs {
+  Id           Int      @id @default(autoincrement())
+  IdOrder      Int
+  IdInstrument Int
+  Underline    String   @users.VarChar(20)
+  Type         String   @default("OPT") @users.VarChar(5)
+  OptRight     String   @users.VarChar(5)
+  Strike       Float
+  Expiry       DateTime @users.Date
+  Direction    String   @users.VarChar(5)
+  Positions    Float
+  Currency     String   @users.VarChar(5)
+  Exchange     String   @users.VarChar(20)
+  MarketPrice  Float
+  OpenDate     DateTime @users.DateTime(0)
+  OpenPrice    Float
+  CloseDate    DateTime @users.DateTime(0)
+  ClosePrice   Float
+}
+
+model IbkrRequests {
+  Id           BigInt    @id @default(autoincrement())
+  IdUser       Int
+  Command      String    @users.VarChar(50)
+  Body         String?   @users.LongText
+  Sent         DateTime? @users.DateTime(0)
+  SentToBridge Boolean   @default(false)
+  Executed     Boolean   @default(false)
+}
+
+model IbkrResponses {
+  Id        BigInt    @id @default(autoincrement())
+  IdRequest Int
+  Response  String    @users.LongText
+  IdOrder   Int       @default(0)
+  Replied   DateTime? @users.DateTime(0)
+  WebLoaded Boolean   @default(false)
+}
+
+model IbkrTokens {
+  Id      Int    @id @default(autoincrement())
+  IdUser  Int
+  Account String @users.VarChar(255)
+  Token   String @users.VarChar(255)
+}
+
+model IbkrUsersDetails {
+  ID           Int      @id @default(autoincrement())
+  IdUser       Int
+  Command      String   @users.VarChar(50)
+  JsonData     String   @users.LongText
+  LastUpdate   DateTime @users.DateTime(0)
+  LastAnalysis DateTime @users.DateTime(0)
+}
+
+model Indicators {
+  Id          Int    @id @default(autoincrement())
+  Name        String @users.VarChar(255)
+  Description String @users.LongText
+}
+
+model IndicatorsData {
+  Id              Int    @id @default(autoincrement())
+  IndicatorId     Int
+  TimeFrameMinute Int
+  CheckSum        String @users.VarChar(255)
+  Ticker          String @users.VarChar(20)
+  Type            String @users.VarChar(20)
+  DateTimeStamp   Int
+  Val1            Float  @default(0)
+  Val2            Float  @default(0)
+  Val3            Float  @default(0)
+  Val4            Float  @default(0)
+  Val5            Float  @default(0)
+  Val6            Float  @default(0)
+  Val7            Float  @default(0)
+  Val8            Float  @default(0)
+  Val9            Float  @default(0)
+  Val10           Float  @default(0)
+  Val11           Float  @default(0)
+  Val12           Float  @default(0)
+  Val13           Float  @default(0)
+  Val14           Float  @default(0)
+  Val15           Float  @default(0)
+  Val16           Float  @default(0)
+
+  @@unique([Ticker, IndicatorId, DateTimeStamp, TimeFrameMinute], map: "Ticker,IndicatorId,DateTimeStamp,TimeFrameMinute")
+  @@index([Ticker, IndicatorId, TimeFrameMinute], map: "Ticker,IdIndicator,Timeframe")
+  @@index([Type, IndicatorId, TimeFrameMinute], map: "Type,IdIndicator, Timeframe")
+}
+
+model IndicatorsData5m {
+  Id              Int    @id @default(autoincrement())
+  IndicatorId     Int
+  TimeFrameMinute Int
+  CheckSum        String @users.VarChar(255)
+  Ticker          String @users.VarChar(20)
+  Type            String @users.VarChar(20)
+  DateTimeStamp   Int
+  Val1            Float  @default(0)
+  Val2            Float  @default(0)
+  Val3            Float  @default(0)
+  Val4            Float  @default(0)
+  Val5            Float  @default(0)
+  Val6            Float  @default(0)
+  Val7            Float  @default(0)
+  Val8            Float  @default(0)
+  Val9            Float  @default(0)
+  Val10           Float  @default(0)
+  Val11           Float  @default(0)
+  Val12           Float  @default(0)
+  Val13           Float  @default(0)
+
+  @@unique([Ticker, IndicatorId, DateTimeStamp, TimeFrameMinute], map: "Ticker,IndicatorId,DateTimeStamp,TimeFrameMinute")
+  @@index([Ticker, IndicatorId, TimeFrameMinute], map: "Ticker,IdIndicator,Timeframe")
+  @@index([Type, IndicatorId, TimeFrameMinute], map: "Type,IdIndicator, Timeframe")
+}
+
+model IndicatorsDataFxForce {
+  Id              Int    @id @default(autoincrement())
+  IndicatorId     Int
+  TimeFrameMinute Int
+  CheckSum        String @users.VarChar(255)
+  Ticker          String @users.VarChar(20)
+  Type            String @users.VarChar(20)
+  DateTimeStamp   Int
+  Val1            Float
+  Val2            Float
+  Val3            Float
+  Val4            Float
+  Val5            Float
+
+  @@unique([IndicatorId, Ticker, TimeFrameMinute, DateTimeStamp], map: "IndicatorId, ticker, Timeframe, DateTimeStamp")
+}
+
+model IndicatorsDataFxForceScalping {
+  Id              Int    @id @default(autoincrement())
+  IndicatorId     Int
+  TimeFrameMinute Int
+  CheckSum        String @users.VarChar(255)
+  Ticker          String @users.VarChar(20)
+  Type            String @users.VarChar(20)
+  DateTimeStamp   Int
+  Val1            Float
+  Val2            Float
+  Val3            Float
+  Val4            Float
+  Val5            Float
+  Val6            Float
+
+  @@unique([IndicatorId, Ticker, TimeFrameMinute, DateTimeStamp], map: "IndicatorId, ticker, Timeframe, DateTimeStamp")
+}
+
+model IndicatorsSignalsScalping {
+  Id            Int     @id @default(autoincrement())
+  Ticker        String? @users.VarChar(20)
+  Timeframe     Int?
+  DateTimeStamp Int?
+  Level         Int?
+  Type          Int?
+  IdIndicator   Int?
+  StopLoss      Float   @default(0)
+  TakeProfit    Float   @default(0)
+
+  @@unique([Ticker, Timeframe, DateTimeStamp, IdIndicator], map: "Ticker, Timeframe, DateTimeStamp, IdIndicator")
+  @@index([Timeframe, DateTimeStamp], map: "Timeframe, DateTimeStamp")
+}
+
+model IndicatorsSignalsScalpingBacktest {
+  Id            Int     @id @default(autoincrement())
+  Ticker        String? @users.VarChar(20)
+  Timeframe     Int?
+  DateTimeStamp Int?
+  Level         Int?
+  Type          Int?
+  IdIndicator   Int?
+  StopLoss      Float   @default(0)
+  TakeProfit    Float   @default(0)
+
+  @@unique([Ticker, Timeframe, DateTimeStamp, IdIndicator], map: "Ticker, Timeframe, DateTimeStamp, IdIndicator")
+  @@index([Timeframe, DateTimeStamp], map: "Timeframe, DateTimeStamp")
+}
+
+model LogLastConnections {
+  Id     Int       @id @default(autoincrement())
+  IdUser Int?
+  Date   DateTime? @users.DateTime(0)
+  Ip     String    @default("") @users.VarChar(20)
+}
+
+model LogLastTickers {
+  Id     Int       @id @default(autoincrement())
+  Ticker String?   @unique(map: "Ticker") @users.VarChar(50)
+  Date   DateTime? @users.DateTime(0)
+}
+
+model MarketAlerts {
+  Id       Int       @id @default(autoincrement())
+  DateTime DateTime? @users.DateTime(0)
+  Title    String?   @users.LongText
+  Content  String?   @users.LongText
+  Type     String?   @users.VarChar(20)
+}
+
+model MarketRealtimeTicker {
+  Id     Int    @id @default(autoincrement())
+  Symbol String @users.VarChar(50)
+  Type   String @users.VarChar(20)
+}
+
+model MarketRealtimeTickerCrypto {
+  Id     Int    @id @default(autoincrement())
+  Symbol String @users.VarChar(10)
+  Type   String @users.VarChar(20)
+  Price  Float  @users.Float
+
+  @@unique([Symbol, Type], map: "Symbol_Type")
+}
+
+model MenuItems {
+  Id        Int      @id @default(autoincrement())
+  MenuId    Int      @default(0)
+  PageId    Int
+  MenuOrder Int      @default(0)
+  Logged    Boolean? @default(false)
+  Unlogged  Boolean? @default(false)
+  Admin     Boolean? @default(false)
+  Product   Boolean? @default(false)
+}
+
+model Menus {
+  Id   Int    @id @default(autoincrement())
+  Tag  String @users.VarChar(30)
+  Name String @users.VarChar(50)
+}
+
+model MessageGroups {
+  Id     Int     @id @default(autoincrement())
+  Name   String? @users.VarChar(50)
+  NameEn String? @users.VarChar(50)
+  NameEs String? @users.VarChar(50)
+}
+
+model Messages {
+  Id         Int      @id @default(autoincrement())
+  IdMessage  Int
+  IdGroup    Int
+  IdUser     Int
+  DateInsert DateTime @users.DateTime(0)
+  DateModify DateTime @users.DateTime(0)
+  Message    String   @users.LongText
+  File       String   @users.VarChar(255)
+  Open       Boolean
+  Closed     Boolean?
+}
+
+model MetaquotesBalance {
+  Id         Int    @id @default(autoincrement())
+  Token      String @users.VarChar(100)
+  Balance    Float  @users.Float
+  Equity     Float  @users.Float
+  Margin     Float  @users.Float
+  FreeMargin Float  @users.Float
+  Leverage   Float  @users.Float
+  Account    String @users.VarChar(20)
+}
+
+model MetaquotesErrors {
+  Id           Int    @id @default(autoincrement())
+  Token        String @users.VarChar(100)
+  ErrorMessage String @users.VarChar(500)
+  IsRead       Int    @default(0) @users.TinyInt
+}
+
+model MetaquotesOrders {
+  Id         Int       @id @default(autoincrement())
+  Token      String    @users.VarChar(100)
+  Pair       String    @users.VarChar(10)
+  Direction  String    @users.VarChar(10)
+  Quantity   Decimal?  @users.Decimal(10, 2)
+  OrderType  String    @users.VarChar(10)
+  LimitPrice Float?    @users.Float
+  StopLoss   Float?    @users.Float
+  TakeProfit Float?    @users.Float
+  Profit     Float     @users.Float
+  ToModify   Int?      @default(0) @users.TinyInt
+  ToClose    Decimal?  @default(0.00) @users.Decimal(10, 2)
+  Closed     Int?      @default(0) @users.TinyInt
+  CreatedAt  DateTime? @users.Timestamp(0)
+  Ticket     BigInt?
+  Processed  Int       @default(0) @users.TinyInt
+
+  @@unique([Token, Ticket], map: "unique_token_ticket")
+}
+
+model MetaquotesOrdersHistory {
+  Id          BigInt                            @id @default(autoincrement()) @users.UnsignedBigInt
+  Token       String                            @users.VarChar(100)
+  Ticket      Int                               @users.UnsignedInt
+  Symbol      String                            @users.VarChar(20)
+  OrderType   MetaquotesOrdersHistory_OrderType
+  Lots        Float
+  OpenPrice   Float
+  ClosePrice  Float
+  OpenTime    DateTime                          @users.DateTime(0)
+  CloseTime   DateTime                          @users.DateTime(0)
+  StopLoss    Float?
+  TakeProfit  Float?
+  Profit      Float
+  Swap        Float
+  Commission  Float
+  Comment     String?                           @users.VarChar(255)
+  MagicNumber Int?                              @users.UnsignedInt
+  Expiration  DateTime?                         @users.DateTime(0)
+
+  @@index([Ticket], map: "idx_ticket")
+}
+
+model MetaquotesSymbols {
+  Id     Int    @id @default(autoincrement())
+  Broker String @users.VarChar(50)
+  Symbol String @users.VarChar(50)
+  Avatar String @users.VarChar(50)
+}
+
+model MetaquotesTempOrders {
+  Id         Int     @id @default(autoincrement())
+  Token      String  @users.VarChar(100)
+  Pair       String  @users.VarChar(10)
+  Direction  String  @users.VarChar(10)
+  Quantity   Decimal @users.Decimal(10, 2)
+  OrderType  String  @users.VarChar(10)
+  LimitPrice Float?  @users.Float
+  StopLoss   Float?  @users.Float
+  TakeProfit Float?  @users.Float
+  Ticket     BigInt?
+  Processed  Int     @default(0) @users.TinyInt
+}
+
+model MetaquotesTokens {
+  Id      Int    @id @default(autoincrement())
+  UserId  Int
+  Token   String @users.VarChar(100)
+  Account String @users.VarChar(30)
+  Broker  String @users.VarChar(50)
+}
+
+model OptionPortfolioStrategies {
+  Id         Int      @id @default(autoincrement())
+  IdUser     Int?
+  Type       String   @users.VarChar(100)
+  Name       String?  @users.LongText
+  Underline  String?  @users.VarChar(50)
+  Market     String   @users.VarChar(20)
+  Broker     String   @users.VarChar(20)
+  DateBuy    DateTime @users.Date
+  DateExpiry DateTime @users.Date
+  Quantity   Float    @default(0)
+  Strategy   String   @users.LongText
+  Archived   Boolean  @default(false)
+  Deleted    Boolean  @default(false)
+}
+
+model OptionSignals {
+  Id           Int      @id @default(autoincrement())
+  DataDate     DateTime @users.Date
+  Type         String   @users.VarChar(30)
+  Broker       String   @users.VarChar(10)
+  Ticker       String   @users.VarChar(20)
+  Market       String   @users.VarChar(20)
+  ClosePrice   Float
+  OptionsType  String   @users.VarChar(10)
+  Strike01     Float    @default(0)
+  Symbol01     String?  @users.VarChar(50)
+  Price01      Float    @default(0)
+  Strike02     Float?
+  Symbol02     String?  @users.VarChar(50)
+  Price02      Float    @default(0)
+  Strike03     Float?
+  Symbol03     String?  @users.VarChar(50)
+  Price03      Float    @default(0)
+  Strike04     Float?
+  Symbol04     String?  @users.VarChar(50)
+  Price04      Float    @default(0)
+  DateExpiry   DateTime @users.Date
+  DaysToExpiry Int
+  MaxProfit    Float?
+  MaxLoss      Float?
+  BepUp        Float?
+  BepDown      Float?
+  RiskRewards  Float
+  Probability  Float
+  Efficency    Float
+  Monthly      Float    @default(0)
+  Enabled      Boolean
+}
+
+model OptionStrategies {
+  Id        Int     @id @default(autoincrement())
+  IdUser    Int?
+  Name      String? @users.LongText
+  Underline String? @users.VarChar(50)
+  Strategy  String  @users.LongText
+}
+
+model OptionStrategiesMaxx {
+  Id            Int      @id @default(autoincrement())
+  Quantity      Int
+  DateOpen      DateTime @users.DateTime(0)
+  DateClosed    DateTime @users.DateTime(0)
+  Name          String?  @users.LongText
+  Description   String   @users.LongText
+  Underline     String?  @users.VarChar(50)
+  Strategy      String   @users.LongText
+  ExecutePrice  Float
+  ClosePrice    Float
+  MaxRisk       Float
+  MaxProfit     Float
+  CloseProfit   Float
+  Closed        Boolean
+  SentToClients Boolean
+}
+
+model OptionStrategiesMaxxClients {
+  Id           Int      @id @default(autoincrement())
+  IdStrategy   Int
+  IdClient     Int
+  Quantity     Int
+  DateOpen     DateTime @users.DateTime(0)
+  DateClosed   DateTime @users.DateTime(0)
+  Name         String?  @users.LongText
+  Description  String   @users.LongText
+  Underline    String?  @users.VarChar(50)
+  ExecutePrice Float
+  ClosePrice   Float
+  MaxRisk      Float
+  MaxProfit    Float
+  CloseProfit  Float
+  Strategy     String   @users.LongText
+  Closed       Boolean
+}
+
+model OptionSym {
+  Id            Int      @id @default(autoincrement())
+  Type          String   @users.VarChar(30)
+  Market        String   @users.VarChar(10)
+  Ticker        String   @users.VarChar(20)
+  DateOpen      DateTime @users.Date
+  DateClose     DateTime @users.Date
+  StrikeUp      Float
+  StrikeCenter  Float
+  StrikeDown    Float
+  SymbolUp      String   @users.VarChar(20)
+  SymbolCenter1 String   @users.VarChar(20)
+  SymbolCenter2 String   @users.VarChar(20)
+  SymbolDown    String   @users.VarChar(20)
+  PriceUp       Float
+  PriceCenter1  Float
+  PriceCenter2  Float
+  PriceDown     Float
+  DaysToExpiry  Int
+  MaxRisk       Float
+  MaxProfit     Float
+  BepUp         Float
+  BepDown       Float
+  RiskRewards   Float
+  Probability   Float
+  Efficency     Float
+  Monthly       Float
+  Profit        Float
+
+  @@unique([Type, Ticker, DateOpen, StrikeUp, StrikeCenter, StrikeDown, DateClose], map: "Type,Ticker,DateOpen,StikeUp,StrikeMid,StrikeDown,DateClose")
+}
+
+model OptionSym_2024_07_22_V1 {
+  Id            Int      @id @default(autoincrement())
+  Type          String   @users.VarChar(30)
+  Market        String   @users.VarChar(10)
+  Ticker        String   @users.VarChar(20)
+  DateOpen      DateTime @users.Date
+  DateClose     DateTime @users.Date
+  StrikeUp      Float
+  StrikeCenter  Float
+  StrikeDown    Float
+  SymbolUp      String   @users.VarChar(20)
+  SymbolCenter1 String   @users.VarChar(20)
+  SymbolCenter2 String   @users.VarChar(20)
+  SymbolDown    String   @users.VarChar(20)
+  PriceUp       Float
+  PriceCenter1  Float
+  PriceCenter2  Float
+  PriceDown     Float
+  DaysToExpiry  Int
+  MaxRisk       Float
+  MaxProfit     Float
+  BepUp         Float
+  BepDown       Float
+  RiskRewards   Float
+  Probability   Float
+  Efficency     Float
+  Monthly       Float
+  Profit        Float
+
+  @@unique([Type, Ticker, DateOpen, StrikeUp, StrikeCenter, StrikeDown, DateClose], map: "Type,Ticker,DateOpen,StikeUp,StrikeMid,StrikeDown,DateClose")
+}
+
+model Orders {
+  Id                 Int       @id @default(autoincrement())
+  IdUser             Int
+  IdProduct          Int
+  Name               String?   @users.VarChar(255)
+  DateInsert         DateTime  @users.DateTime(0)
+  DateBuy            DateTime  @users.Date
+  DateNextPayment    DateTime? @users.Date
+  Price              Float     @users.Float
+  Currency           String?   @users.VarChar(5)
+  PaymentStatus      String    @users.VarChar(30)
+  Expiry             Int       @default(0)
+  SubscriptionUnit   String    @default("") @users.VarChar(5)
+  Subscription       Boolean   @default(false)
+  SubscriptionPaused Boolean   @default(false)
+  CreditCardMD5      String    @default("") @users.VarChar(255)
+  CreditCardNumber   String    @default("") @users.VarChar(10)
+}
+
+model PagesUrl {
+  Id          Int      @id @default(autoincrement())
+  Name        String   @users.VarChar(255)
+  Url         String   @unique(map: "Url") @users.VarChar(255)
+  Destination String   @users.VarChar(255)
+  Title       String?  @users.LongText
+  Description String?  @users.LongText
+  Keywords    String?  @users.LongText
+  Platform    Boolean? @default(false)
+}
+
+model PagesUrlAdmin {
+  Id          Int    @id @default(autoincrement())
+  Name        String @users.VarChar(255)
+  Url         String @users.VarChar(255)
+  Destination String @users.VarChar(255)
+  MenuOrder   Int
+}
+
+model PagesUrlVsProducts {
+  Id        Int  @id @default(autoincrement())
+  IdPage    Int?
+  IdProduct Int?
+}
+
+model Payments {
+  Id                    Int      @id @default(autoincrement())
+  IdOrder               Int
+  DateInsert            DateTime @users.DateTime(0)
+  Price                 Float    @users.Float
+  Currency              String?  @users.VarChar(5)
+  PaymentStatus         String   @users.VarChar(30)
+  StripeCustomerId      String   @users.VarChar(100)
+  StripePaymentMethodId String   @users.VarChar(100)
+  StripePaimentIntentId String   @users.VarChar(100)
+  PaymentError          String   @default("") @users.VarChar(255)
+}
+
+model Products {
+  Id               Int       @id @default(autoincrement())
+  Name             String    @default("") @users.VarChar(255)
+  Description      String    @default("") @users.VarChar(255)
+  Price            Float?    @default(0) @users.Float
+  Currency         String?   @users.VarChar(5)
+  NameEn           String?   @users.VarChar(255)
+  DescriptionEn    String?   @users.VarChar(255)
+  PriceEn          Float?    @users.Float
+  CurrencyEn       String?   @users.VarChar(5)
+  NameEs           String?   @users.VarChar(255)
+  DescriptionEs    String?   @users.VarChar(255)
+  PriceEs          Float?    @users.Float
+  CurrencyEs       String?   @users.VarChar(5)
+  ExpiryDays       Int       @default(0)
+  SubscriptionUnit String    @default("") @users.VarChar(5)
+  DateInsert       DateTime? @users.DateTime(0)
+  Subscription     Boolean   @default(false)
+  TrialPrice       Float     @default(0)
+  TrialExpiryDays  Int       @default(0)
+  TrialUnit        String    @default("") @users.VarChar(5)
+  TrialVersion     Boolean   @default(false)
+  Token            String    @default("") @users.VarChar(255)
+}
+
+model ProductsVsIndicators {
+  Id             Int    @id @default(autoincrement())
+  IdProduct      Int
+  IdIndicator    Int
+  InstrumentType String @users.VarChar(30)
+}
+
+model Settings {
+  Id     Int    @id @default(autoincrement())
+  Name   String @users.VarChar(255)
+  Value  String @users.LongText
+  Value1 String @users.VarChar(255)
+  Value2 String @users.VarChar(20)
+}
+
+model Signals {
+  Id         Int      @id @default(autoincrement())
+  IdGroup    Int
+  DateSignal DateTime @users.Date
+  TimeSignal String   @users.VarChar(8)
+  Ticker     String   @users.VarChar(20)
+  OrderType  String   @users.VarChar(20)
+  Price      Float
+  Stop       Float
+  Take       Float
+  Val1       Float
+}
+
+model SignalsGroups {
+  Id   Int    @id @default(autoincrement())
+  Name String @users.VarChar(50)
+}
+
+model StatsTags {
+  Id                   Int      @id @default(autoincrement())
+  IdUser               Int
+  Tag                  String   @users.VarChar(255)
+  FirstClick           DateTime @users.DateTime(0)
+  LastClick            DateTime @users.DateTime(0)
+  BitrixLastDateInsert DateTime @users.DateTime(0)
+  Clicks               Int
+
+  @@unique([IdUser, Tag], map: "IdUser_Tag")
+}
+
+model StockInfo {
+  Id             Int     @id @default(autoincrement())
+  Ticker         String  @users.VarChar(30)
+  Name           String  @users.VarChar(50)
+  Country        String  @users.VarChar(30)
+  Exchange       String  @users.VarChar(10)
+  Currency       String  @users.VarChar(10)
+  Type           String  @users.VarChar(30)
+  Isin           String  @users.VarChar(20)
+  FiscalYearEnd  String  @users.VarChar(20)
+  Sector         String  @users.VarChar(100)
+  Industry       String  @users.VarChar(100)
+  GicSector      String  @users.VarChar(100)
+  GicGroup       String  @users.VarChar(100)
+  GicIndustry    String  @users.VarChar(100)
+  GicSubIndustry String  @users.VarChar(100)
+  HomeCategory   String  @users.VarChar(100)
+  IsDelisted     Boolean
+  Description    String  @users.LongText
+  AddrStreet     String  @users.VarChar(30)
+  AddrCity       String  @users.VarChar(30)
+  AddrState      String  @users.VarChar(30)
+  AddrCountry    String  @users.VarChar(30)
+  AddrZip        String  @users.VarChar(10)
+  WebUrl         String  @users.VarChar(100)
+  LogoUrl        String  @users.VarChar(100)
+}
+
+model StockInfoEarnings {
+  Id                Int      @id @default(autoincrement())
+  IdStock           Int
+  ReportDate        DateTime @users.Date
+  Date              DateTime @users.Date
+  BeforeAfterMarket String   @users.VarChar(20)
+  Currency          String   @users.VarChar(10)
+  EpsActual         Float
+  EpsEstimate       Float
+  EpsDifference     Float
+  SurpricePercent   Float
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model StockInfoEarningsFuture {
+  IdStock           Int
+  ReportDate        DateTime @users.Date
+  Date              DateTime @users.Date
+  BeforeAfterMarket String   @users.VarChar(20)
+  Currency          String   @users.VarChar(10)
+  EpsActual         Float
+  EpsEstimate       Float
+  EpsDifference     Float
+  SurpricePercent   Float
+
+  @@index([IdStock], map: "IdStock")
+  @@ignore
+}
+
+model StockInfoTechnicals {
+  Id                         Int   @id @default(autoincrement())
+  IdStock                    Int
+  MarketCapitalizationK      Int
+  EbitdaK                    Int
+  PeRatio                    Float
+  PegRatio                   Float
+  WallStreetTargetPrice      Float
+  BookValue                  Float
+  DividendShare              Float
+  DividendYield              Float
+  EarningsShare              Float
+  ProfitMargin               Float
+  RevenuePerShareTtm         Float
+  QuarterlyRevenueGrowthYoy  Float
+  GrossProfitTtm             Int
+  DilutedEpsTtm              Float
+  QuarterlyEarningsGrowthYoy Float
+  ForwardPe                  Float
+  WeekHigh                   Float @map("52WeekHigh")
+  WeekLow                    Float @map("52WeekLow")
+  DayMA                      Float @map("50DayMA")
+  DayMA200                   Float @map("200DayMA")
+  SharesShort                Int
+  SharesShortPriorMonth      Int
+  ShortRatio                 Float
+  ShortPercent               Float
+
+  @@index([IdStock], map: "IdStock")
+}
+
+model StockSelections {
+  Id                    Int       @id @default(autoincrement())
+  IdWatchList           Int
+  Ticker                String    @users.VarChar(30)
+  LastUpdate            DateTime? @users.DateTime(0)
+  LastUpdateFundamental DateTime? @users.Date
+  LastUpdateDividends   DateTime  @users.Date
+
+  @@unique([IdWatchList, Ticker], map: "IdWatchList_Ticker")
+}
+
+model StockWatchLists {
+  Id   Int    @id @default(autoincrement())
+  Name String @users.VarChar(255)
+}
+
+model StocksStrategiesMaxx {
+  Id            Int      @id @default(autoincrement())
+  Quantity      Int
+  DateOpen      DateTime @users.DateTime(0)
+  DateClosed    DateTime @users.DateTime(0)
+  Name          String   @users.LongText
+  Description   String   @users.LongText
+  Underline     String   @users.VarChar(50)
+  Type          String   @users.VarChar(10)
+  ExecutePrice  Float
+  ClosePrice    Float
+  CloseProfit   Float
+  Closed        Boolean
+  SentToClients Boolean
+}
+
+model StocksStrategiesMaxxClients {
+  Id            Int      @id @default(autoincrement())
+  IdStrategy    Int
+  IdClient      Int
+  Quantity      Int
+  DateOpen      DateTime @users.DateTime(0)
+  DateClosed    DateTime @users.DateTime(0)
+  ExecutedPrice Float
+  ClosePrice    Float
+  CloseProfit   Float
+  Closed        Boolean
+}
+
+model TViewCharts {
+  Id         Int      @id @default(autoincrement())
+  Time       DateTime @default(now()) @users.DateTime(0)
+  IdUser     String   @users.VarChar(11)
+  Symbol     String   @users.VarChar(50)
+  Resolution String   @users.VarChar(10)
+  Name       String   @users.VarChar(255)
+  Content    String   @users.LongText
+}
+
+model TViewDraws {
+  Id             Int      @id @default(autoincrement())
+  DateLastAccess DateTime @users.DateTime(0)
+  IdUser         Int
+  Symbol         String   @users.VarChar(50)
+  Content        String   @users.LongText
+
+  @@unique([IdUser, Symbol], map: "IdUser_Symbol")
+}
+
+model TViewTemplates {
+  Id      Int    @id @default(autoincrement())
+  IdUser  Int
+  Name    String @users.LongText
+  Content String @users.LongText
+}
+
+model UserSettings {
+  Id     Int    @id @default(autoincrement())
+  IdUser Int
+  Name   String @users.VarChar(255)
+  Value  String @users.LongText
+}
+
+model Users {
+  Id             Int       @id @default(autoincrement())
+  DateRegister   DateTime? @users.DateTime(0)
+  NickName       String?   @users.VarChar(20)
+  Name           String?   @users.VarChar(20)
+  Surname        String?   @users.VarChar(20)
+  Phone          String?   @users.VarChar(20)
+  GoogleName     String?   @users.VarChar(50)
+  GoogleSurname  String?   @users.VarChar(50)
+  Email          String    @unique(map: "Email") @users.VarChar(50)
+  Password       String?   @users.VarChar(100)
+  GoogleId       String?   @users.VarChar(50)
+  GoogleAvatar   String?   @users.LongText
+  GoogleGender   String?   @users.VarChar(20)
+  FacebookName   String?   @users.VarChar(50)
+  FacebookId     String?   @users.VarChar(50)
+  Company        String?   @users.VarChar(50)
+  Country        Int?
+  Address        String?   @users.VarChar(255)
+  PostalCode     String?   @users.VarChar(10)
+  City           String?   @users.VarChar(50)
+  Admin          Boolean   @default(false)
+  Publisher      Boolean   @default(false)
+  Token          String?   @users.VarChar(255)
+  TokenApp       String?   @users.VarChar(255)
+  Ip             String?   @users.VarChar(20)
+  Browser        String?   @users.LongText
+  Language       String?   @users.VarChar(5)
+  ActiveCampaign Boolean   @default(false)
+  Bitrix         Boolean?  @default(false)
+  RestoreDate    DateTime? @users.DateTime(0)
+  RestoreKey     String?   @users.LongText
+  PushWooshId    String?   @users.VarChar(255)
+}
+
+model WatchLists {
+  Id     Int     @id @default(autoincrement())
+  IdUser Int
+  Symbol String? @users.VarChar(30)
+  Type   String? @users.VarChar(30)
+}
+
+enum MetaquotesOrdersHistory_OrderType {
+  Buy
+  Sell
+  Buy_Limit  @map("Buy Limit")
+  Sell_Limit @map("Sell Limit")
+  Buy_Stop   @map("Buy Stop")
+  Sell_Stop  @map("Sell Stop")
+  Unknown
+}
