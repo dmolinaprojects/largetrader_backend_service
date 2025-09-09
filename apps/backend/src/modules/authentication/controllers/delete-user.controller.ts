@@ -1,5 +1,11 @@
 import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { DeleteUserHandlerUseCase } from '../handlers/delete-user-handler.use-case';
@@ -16,30 +22,30 @@ export class DeleteUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Eliminar usuario',
-    description: 'Endpoint para eliminar un usuario del sistema',
+    summary: 'Delete user',
+    description: 'Endpoint to delete a user from the system',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID único del usuario',
+    description: 'Unique user ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     status: 200,
-    description: 'Usuario eliminado exitosamente',
+    description: 'User deleted successfully',
     schema: {
       type: 'object',
       properties: {
         message: {
           type: 'string',
-          example: 'Usuario eliminado exitosamente',
+          example: 'User deleted successfully',
         },
       },
     },
   })
   @ApiResponse({
     status: 404,
-    description: 'Usuario no encontrado',
+    description: 'User not found',
   })
   @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<{ message: string }> {

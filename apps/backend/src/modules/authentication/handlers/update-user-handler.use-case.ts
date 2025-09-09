@@ -12,7 +12,10 @@ export class UpdateUserHandlerUseCase {
     private readonly updateUserUseCase: UpdateUserUseCase,
   ) {}
 
-  async execute(id: string, userData: UpdateUserRequestDto): Promise<UserResponseDto> {
+  async execute(
+    id: string,
+    userData: UpdateUserRequestDto,
+  ): Promise<UserResponseDto> {
     this.logger.info(
       `[UpdateUserHandlerUseCase.execute] Updating user with ID: ${id}`,
     );

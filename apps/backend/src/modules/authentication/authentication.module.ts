@@ -23,7 +23,7 @@ import { GetAllUsersHandlerUseCase } from './handlers/get-all-users-handler.use-
 import { LoginUserHandlerUseCase } from './handlers/login-user-handler.use-case';
 import { RegisterUserHandlerUseCase } from './handlers/register-user-handler.use-case';
 import { RefreshTokenHandlerUseCase } from './handlers/refresh-token-handler.use-case';
-import { GoogleLoginHandlerUseCase } from './handlers/google-login-handler.use-case';
+import { GoogleIdTokenLoginHandlerUseCase } from './handlers/google-id-token-login-handler.use-case';
 
 // Use Cases
 import { CreateUserUseCase } from './use-cases/create-user.use-case';
@@ -35,14 +35,13 @@ import { GetAllUsersUseCase } from './use-cases/get-all-users.use-case';
 import { LoginUserUseCase } from './use-cases/login-user.use-case';
 import { RegisterUserUseCase } from './use-cases/register-user.use-case';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
-import { GoogleLoginUseCase } from './use-cases/google-login.use-case';
+import { GoogleIdTokenLoginUseCase } from './use-cases/google-id-token-login.use-case';
+
+// Services
+import { GoogleAuthService } from './services/google-auth.service';
 
 @Module({
-  imports: [
-    SharedModule,
-    CommonModule,
-    TokenModule,
-  ],
+  imports: [SharedModule, CommonModule, TokenModule],
   controllers: [
     CreateUserController,
     GetUserController,
@@ -64,7 +63,7 @@ import { GoogleLoginUseCase } from './use-cases/google-login.use-case';
     LoginUserHandlerUseCase,
     RegisterUserHandlerUseCase,
     RefreshTokenHandlerUseCase,
-    GoogleLoginHandlerUseCase,
+    GoogleIdTokenLoginHandlerUseCase,
 
     // Use Cases
     CreateUserUseCase,
@@ -76,7 +75,10 @@ import { GoogleLoginUseCase } from './use-cases/google-login.use-case';
     LoginUserUseCase,
     RegisterUserUseCase,
     RefreshTokenUseCase,
-    GoogleLoginUseCase,
+    GoogleIdTokenLoginUseCase,
+
+    // Services
+    GoogleAuthService,
   ],
   exports: [
     CreateUserUseCase,
@@ -88,7 +90,8 @@ import { GoogleLoginUseCase } from './use-cases/google-login.use-case';
     LoginUserUseCase,
     RegisterUserUseCase,
     RefreshTokenUseCase,
-    GoogleLoginUseCase,
+    GoogleIdTokenLoginUseCase,
+    GoogleAuthService,
   ],
 })
 export class AuthenticationModule {}

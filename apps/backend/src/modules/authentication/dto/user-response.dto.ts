@@ -2,212 +2,212 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UserResponseDto {
   @ApiProperty({
-    description: 'ID del usuario',
+    description: 'User ID',
     example: 1,
   })
   id: number;
 
   @ApiProperty({
-    description: 'Fecha de registro del usuario',
+    description: 'User registration date',
     example: '2023-01-01T00:00:00.000Z',
     required: false,
   })
   dateRegister?: Date;
 
   @ApiProperty({
-    description: 'Apodo del usuario',
+    description: 'User nickname',
     example: 'juan123',
     required: false,
   })
   nickName?: string;
 
   @ApiProperty({
-    description: 'Nombre del usuario',
+    description: 'User first name',
     example: 'Juan',
     required: false,
   })
   name?: string;
 
   @ApiProperty({
-    description: 'Apellido del usuario',
+    description: 'User last name',
     example: 'Pérez',
     required: false,
   })
   surname?: string;
 
   @ApiProperty({
-    description: 'Número de teléfono del usuario',
+    description: 'User phone number',
     example: '+1234567890',
     required: false,
   })
   phone?: string;
 
   @ApiProperty({
-    description: 'Nombre de Google del usuario',
+    description: 'User Google name',
     example: 'Juan Google',
     required: false,
   })
   googleName?: string;
 
   @ApiProperty({
-    description: 'Apellido de Google del usuario',
+    description: 'User Google surname',
     example: 'Pérez Google',
     required: false,
   })
   googleSurname?: string;
 
   @ApiProperty({
-    description: 'Correo electrónico del usuario',
+    description: 'User email address',
     example: 'juan.perez@example.com',
   })
   email: string;
 
   @ApiProperty({
-    description: 'ID de Google del usuario',
+    description: 'User Google ID',
     example: 'google123',
     required: false,
   })
   googleId?: string;
 
   @ApiProperty({
-    description: 'Avatar de Google del usuario',
+    description: 'User Google avatar',
     example: 'https://example.com/avatar.jpg',
     required: false,
   })
   googleAvatar?: string;
 
   @ApiProperty({
-    description: 'Género de Google del usuario',
+    description: 'User Google gender',
     example: 'male',
     required: false,
   })
   googleGender?: string;
 
   @ApiProperty({
-    description: 'Nombre de Facebook del usuario',
+    description: 'User Facebook name',
     example: 'Juan Facebook',
     required: false,
   })
   facebookName?: string;
 
   @ApiProperty({
-    description: 'ID de Facebook del usuario',
+    description: 'User Facebook ID',
     example: 'facebook123',
     required: false,
   })
   facebookId?: string;
 
   @ApiProperty({
-    description: 'Empresa del usuario',
+    description: 'User company',
     example: 'Mi Empresa',
     required: false,
   })
   company?: string;
 
   @ApiProperty({
-    description: 'País del usuario',
+    description: 'User country',
     example: 1,
     required: false,
   })
   country?: number;
 
   @ApiProperty({
-    description: 'Dirección del usuario',
+    description: 'User address',
     example: 'Calle 123, Ciudad',
     required: false,
   })
   address?: string;
 
   @ApiProperty({
-    description: 'Código postal del usuario',
+    description: 'User postal code',
     example: '12345',
     required: false,
   })
   postalCode?: string;
 
   @ApiProperty({
-    description: 'Ciudad del usuario',
+    description: 'User city',
     example: 'Madrid',
     required: false,
   })
   city?: string;
 
   @ApiProperty({
-    description: 'Si el usuario es administrador',
+    description: 'Whether the user is an administrator',
     example: false,
   })
   admin: boolean;
 
   @ApiProperty({
-    description: 'Si el usuario es publisher',
+    description: 'Whether the user is a publisher',
     example: false,
   })
   publisher: boolean;
 
   @ApiProperty({
-    description: 'Token del usuario',
+    description: 'User token',
     example: 'token123',
     required: false,
   })
   token?: string;
 
   @ApiProperty({
-    description: 'Token de aplicación del usuario',
+    description: 'User application token',
     example: 'app_token123',
     required: false,
   })
   tokenApp?: string;
 
   @ApiProperty({
-    description: 'IP del usuario',
+    description: 'User IP address',
     example: '192.168.1.1',
     required: false,
   })
   ip?: string;
 
   @ApiProperty({
-    description: 'Navegador del usuario',
+    description: 'User browser',
     example: 'Chrome',
     required: false,
   })
   browser?: string;
 
   @ApiProperty({
-    description: 'Idioma del usuario',
+    description: 'User language',
     example: 'es',
     required: false,
   })
   language?: string;
 
   @ApiProperty({
-    description: 'Si el usuario está en ActiveCampaign',
+    description: 'Whether the user is in ActiveCampaign',
     example: false,
   })
   activeCampaign: boolean;
 
   @ApiProperty({
-    description: 'Si el usuario está en Bitrix',
+    description: 'Whether the user is in Bitrix',
     example: false,
     required: false,
   })
   bitrix?: boolean;
 
   @ApiProperty({
-    description: 'Fecha de restauración del usuario',
+    description: 'User restoration date',
     example: '2023-01-01T00:00:00.000Z',
     required: false,
   })
   restoreDate?: Date;
 
   @ApiProperty({
-    description: 'Clave de restauración del usuario',
+    description: 'User restoration key',
     example: 'restore_key123',
     required: false,
   })
   restoreKey?: string;
 
   @ApiProperty({
-    description: 'ID de PushWoosh del usuario',
+    description: 'User PushWoosh ID',
     example: 'pushwoosh123',
     required: false,
   })

@@ -1,65 +1,85 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient as UsersPrismaClient, UserSettings as PrismaUserSettings } from '@prisma/users-client';
-import { 
-  UserSettingsRepository, 
-  UserSettingsFilters 
-} from '../../../domain/repositories/users/user-settings.repository';
+import {
+  PrismaClient as UsersPrismaClient,
+  UserSettings as PrismaUserSettings,
+} from '@prisma/users-client';
+import { UserSettingsRepository } from '../../../domain/repositories/users/user-settings.repository';
 import { UserSettings } from '../../../domain/models/users/user-settings.model';
-import { TFindManyArgs, TFindOneArgs, TCreateOneArgs, TUpdateOneArgs, TDeleteOneArgs, TTransactionArgs } from '@app/core';
+import {
+  TFindManyArgs,
+  TFindOneArgs,
+  TCreateOneArgs,
+  TCreateManyArgs,
+  TUpdateOneArgs,
+  TDeleteOneArgs,
+  TUpsertOneArgs,
+  TTransactionArgs,
+  TCountManyArgs,
+} from '@app/core';
 
 @Injectable()
 export class PrismaUserSettingsRepository implements UserSettingsRepository {
   constructor(private readonly prisma: UsersPrismaClient) {}
 
-  async findMany(args?: TFindManyArgs<UserSettingsFilters, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings[]> {
-    const where = args?.where ? this.buildWhereClause(args.where) : {};
-    
-    const results = await this.prisma.userSettings.findMany({
-      where,
+  async findMany(args?: TFindManyArgs<UserSettings, UserSettings>): Promise<UserSettings[]> {
+    return (await this.prisma.userSettings.findMany({
+      where: args?.where,
       skip: args?.skip,
       take: args?.take,
-      orderBy: { Id: 'asc' },
-    });
-
-    return results;
+      orderBy: args?.orderBy || { Id: 'asc' },
+    })) as unknown as UserSettings[];
   }
 
-  async findOne(args: TFindOneArgs<UserSettingsFilters, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings | null> {
-    const where = this.buildWhereClause(args.where);
-    
-    const result = await this.prisma.userSettings.findFirst({ where });
-    
-    return result;
+  async findOne(args: TFindOneArgs<UserSettings, UserSettings>): Promise<UserSettings | null> {
+    return (await this.prisma.userSettings.findFirst({
+      where: args.where,
+    })) as unknown as UserSettings | null;
+  }
+
+  async count(filters: UserSettings): Promise<number> {
+    return await this.prisma.userSettings.count({ where: filters });
+  }
+
+  async countMany(args?: TCountManyArgs<UserSettings>, tx?: TTransactionArgs): Promise<number> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return await client.userSettings.count({ where: args?.where });
+  }
+
+  // Implementación de métodos faltantes
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return await this.prisma.$transaction(fn);
   }
 
   async createOne(args: TCreateOneArgs<UserSettings, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
-    const result = await this.prisma.userSettings.create({
-      data: args.data as PrismaUserSettings,
-    });
-
-    return result;
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.userSettings.create({ data: args.data as PrismaUserSettings })) as UserSettings;
   }
 
-  async updateOne(args: TUpdateOneArgs<UserSettingsFilters, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
-    const result = await this.prisma.userSettings.update({
-      where: { Id: args.where.Id },
-      data: args.data as Partial<PrismaUserSettings>,
-    });
-
-    return result;
+  async createMany(args: TCreateManyArgs<UserSettings>, tx?: TTransactionArgs): Promise<void> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    await client.userSettings.createMany({ data: args.data as PrismaUserSettings[] });
   }
 
-  async deleteOne(args: TDeleteOneArgs<UserSettingsFilters, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
-    const result = await this.prisma.userSettings.delete({
-      where: { Id: args.where.Id },
-    });
-
-    return result;
+  async updateOne(args: TUpdateOneArgs<Partial<UserSettings>, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.userSettings.update({ 
+      where: { Id: args.where.Id }, 
+      data: args.data as Partial<PrismaUserSettings> 
+    })) as UserSettings;
   }
 
-  async count(filters: UserSettingsFilters): Promise<number> {
-    const where = this.buildWhereClause(filters);
-    return this.prisma.userSettings.count({ where });
+  async deleteOne(args: TDeleteOneArgs<Partial<UserSettings>, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.userSettings.delete({ where: { Id: args.where.Id } })) as UserSettings;
+  }
+
+  async upsertOne(args: TUpsertOneArgs<Partial<UserSettings>, UserSettings>, tx?: TTransactionArgs): Promise<UserSettings> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.userSettings.upsert({ 
+      where: { Id: args.where.Id }, 
+      update: args.update as Partial<PrismaUserSettings>, 
+      create: args.create as PrismaUserSettings 
+    })) as UserSettings;
   }
 
   async findByUserId(userId: number): Promise<UserSettings[]> {
@@ -71,30 +91,37 @@ export class PrismaUserSettingsRepository implements UserSettingsRepository {
     return results;
   }
 
-  async findByUserIdAndName(userId: number, name: string): Promise<UserSettings | null> {
+  async findByUserIdAndName(
+    userId: number,
+    name: string,
+  ): Promise<UserSettings | null> {
     const result = await this.prisma.userSettings.findFirst({
-      where: { 
+      where: {
         IdUser: userId,
-        Name: name 
+        Name: name,
       },
     });
 
     return result;
   }
 
-  async updateUserSetting(userId: number, name: string, value: string): Promise<UserSettings> {
+  async updateUserSetting(
+    userId: number,
+    name: string,
+    value: string,
+  ): Promise<UserSettings> {
     const existing = await this.prisma.userSettings.findFirst({
-      where: { IdUser: userId, Name: name }
+      where: { IdUser: userId, Name: name },
     });
 
     if (existing) {
       return this.prisma.userSettings.update({
         where: { Id: existing.Id },
-        data: { Value: value }
+        data: { Value: value },
       });
     } else {
       return this.prisma.userSettings.create({
-        data: { IdUser: userId, Name: name, Value: value }
+        data: { IdUser: userId, Name: name, Value: value },
       });
     }
   }
@@ -105,11 +132,4 @@ export class PrismaUserSettingsRepository implements UserSettingsRepository {
     });
   }
 
-  private buildWhereClause(filters: UserSettingsFilters) {
-    return {
-      ...(filters.Id && { Id: filters.Id }),
-      ...(filters.IdUser && { IdUser: filters.IdUser }),
-      ...(filters.Name && { Name: { contains: filters.Name } }),
-    };
-  }
 }

@@ -1,9 +1,9 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { GoogleLoginRequestDto } from '../dto/google-login-request.dto';
+import { GoogleIdTokenLoginRequestDto } from '../dto/google-id-token-login-request.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { GoogleLoginHandlerUseCase } from '../handlers/google-login-handler.use-case';
+import { GoogleIdTokenLoginHandlerUseCase } from '../handlers/google-id-token-login-handler.use-case';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -11,36 +11,43 @@ export class GoogleLoginController {
   constructor(
     @InjectPinoLogger(GoogleLoginController.name)
     private readonly logger: PinoLogger,
-    private readonly googleLoginHandlerUseCase: GoogleLoginHandlerUseCase,
+    private readonly googleIdTokenLoginHandlerUseCase: GoogleIdTokenLoginHandlerUseCase,
   ) {}
 
   @ApiOperation({
-    summary: 'Iniciar sesión con Google',
-    description: 'Endpoint para autenticar usuarios usando credenciales de Google',
+    summary: 'Login with Google ID Token',
+    description: 'Endpoint to authenticate users using Google ID Token',
   })
   @ApiBody({
-    type: GoogleLoginRequestDto,
-    description: 'Datos de autenticación de Google',
+    type: GoogleIdTokenLoginRequestDto,
+    description: 'Google ID Token for authentication',
   })
   @ApiResponse({
     status: 200,
-    description: 'Inicio de sesión con Google exitoso',
+    description: 'Google login successful',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
-  @Post('google-login')
-  async googleLogin(@Body() googleData: GoogleLoginRequestDto): Promise<AuthResponseDto> {
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid Google token',
+  })
+  @Post('google/login')
+  async googleLogin(
+    @Body() googleData: GoogleIdTokenLoginRequestDto,
+  ): Promise<AuthResponseDto> {
     this.logger.info(
-      `[GoogleLoginController.googleLogin] Google login attempt for email: ${googleData.email}`,
+      `[GoogleLoginController.googleLogin] Google ID token login attempt`,
     );
 
-    const response = await this.googleLoginHandlerUseCase.execute(googleData);
+    const response =
+      await this.googleIdTokenLoginHandlerUseCase.execute(googleData);
 
     this.logger.info(
-      `[GoogleLoginController.googleLogin] Google login successful for email: ${googleData.email}`,
+      `[GoogleLoginController.googleLogin] Google ID token login successful`,
     );
 
     return response;

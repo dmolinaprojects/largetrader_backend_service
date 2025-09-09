@@ -1,9 +1,11 @@
 import { TTransactionArgs } from '@app/core';
+import { Users, UsersRepository } from '@app/shared';
 import {
-  Users,
-  UsersRepository,
-} from '@app/shared';
-import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -63,9 +65,12 @@ export class LoginUserUseCase {
 
     // Si bcrypt falló, intentar con MD5
     if (!isPasswordValid) {
-      const md5Hash = crypto.createHash('md5').update(loginData.password).digest('hex');
+      const md5Hash = crypto
+        .createHash('md5')
+        .update(loginData.password)
+        .digest('hex');
       isPasswordValid = user.Password === md5Hash;
-      
+
       if (isPasswordValid) {
         this.logger.info(
           `[LoginUserUseCase.execute] MD5 password match for email: ${loginData.email}`,

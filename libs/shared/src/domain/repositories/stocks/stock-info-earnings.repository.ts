@@ -1,25 +1,35 @@
-import { IFindManyRepository, IFindOneRepository, ICreateOneRepository, IUpdateOneRepository, IDeleteOneRepository } from '@app/core';
+import {
+  ITransactionRepository,
+  ICreateOneRepository,
+  ICreateManyRepository,
+  IUpdateOneRepository,
+  IDeleteOneRepository,
+  IUpsertOneRepository,
+  IFindOneRepository,
+  IFindManyRepository,
+  ICountManyRepository,
+} from '@app/core';
 import { StockInfoEarnings } from '../../models/stocks/stock-info-earnings.model';
 
-export interface StockInfoEarningsFilters {
-  Id?: number;
-  IdStock?: number;
-  DateFrom?: Date;
-  DateTo?: Date;
-  Currency?: string;
-  EpsActualMin?: number;
-  EpsActualMax?: number;
-  SurpricePercentMin?: number;
-  SurpricePercentMax?: number;
-}
-
-export interface StockInfoEarningsRepository 
-  extends IFindManyRepository<StockInfoEarningsFilters, StockInfoEarnings>,
-          IFindOneRepository<StockInfoEarningsFilters, StockInfoEarnings>,
-          ICreateOneRepository<StockInfoEarnings>,
-          IUpdateOneRepository<StockInfoEarningsFilters, StockInfoEarnings>,
-          IDeleteOneRepository<StockInfoEarningsFilters, StockInfoEarnings> {
-  
+export interface StockInfoEarningsRepository
+  extends ITransactionRepository,
+    ICreateOneRepository<StockInfoEarnings>,
+    ICreateManyRepository<StockInfoEarnings>,
+    IUpdateOneRepository<
+      Pick<StockInfoEarnings, 'Id'> | Pick<StockInfoEarnings, 'IdStock'>,
+      StockInfoEarnings
+    >,
+    IDeleteOneRepository<
+      Pick<StockInfoEarnings, 'Id'> | Pick<StockInfoEarnings, 'IdStock'>,
+      StockInfoEarnings
+    >,
+    IUpsertOneRepository<
+      Pick<StockInfoEarnings, 'Id'> | Pick<StockInfoEarnings, 'IdStock'>,
+      StockInfoEarnings
+    >,
+    IFindOneRepository<StockInfoEarnings, StockInfoEarnings>,
+    IFindManyRepository<StockInfoEarnings, StockInfoEarnings>,
+    ICountManyRepository<StockInfoEarnings> {
   findByStockId(stockId: number): Promise<StockInfoEarnings[]>;
   findRecentEarnings(days: number): Promise<StockInfoEarnings[]>;
   findPositiveSurprises(): Promise<StockInfoEarnings[]>;

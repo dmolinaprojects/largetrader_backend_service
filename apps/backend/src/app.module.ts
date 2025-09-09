@@ -20,13 +20,15 @@ import { CommonModule } from './common/common.module';
 
 import { SharedModule } from './shared/shared.module';
 import { DocsJwtAuthorizer } from './common/middlewares/docs-jwt-authorizer';
-import {
-  loggerConfig,
-} from './configuration/index';
+import { loggerConfig } from './configuration/index';
 import { envValidator } from './env.validator';
 import { HealthModule } from './modules/health/health.module';
 import { AuthenticationModule } from './modules/authentication/authentication.module';
 import { WebSocketModule } from './modules/websocket/websocket.module';
+import { SignalsModule } from './modules/signals/signals.module';
+import { StocksModule } from './modules/stocks/stocks.module';
+import { MarketDataModule } from './modules/market-data/market-data.module';
+import { FeedModule } from './modules/feed/feed.module';
 
 @Module({
   controllers: [],
@@ -53,9 +55,12 @@ import { WebSocketModule } from './modules/websocket/websocket.module';
     // Other Modules
     AuthenticationModule,
     WebSocketModule,
+    SignalsModule,
+    StocksModule,
+    MarketDataModule,
+    FeedModule,
 
     HealthModule,
-
   ],
   providers: [DocsJwtAuthorizer, ConfigService, JwtService],
   exports: [],
@@ -70,9 +75,8 @@ export class AppModule implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    this.unhandledExceptionsBus
-      .pipe(takeUntil(this.destroy$))
-     /* .subscribe((exceptionInfo) => {
+    this.unhandledExceptionsBus.pipe(takeUntil(this.destroy$));
+    /* .subscribe((exceptionInfo) => {
         const cacheKey = `retries:${exceptionInfo.cause.id}`;
 
         this.cacheManager

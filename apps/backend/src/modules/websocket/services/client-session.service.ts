@@ -21,14 +21,18 @@ export class ClientSessionService {
 
   async addClient(clientId: string, session: ClientSession): Promise<void> {
     this.clientSessions.set(clientId, session);
-    this.logger.info(`[ClientSessionService.addClient] Added client ${clientId} for user ${session.email}`);
+    this.logger.info(
+      `[ClientSessionService.addClient] Added client ${clientId} for user ${session.email}`,
+    );
   }
 
   async removeClient(clientId: string): Promise<void> {
     const session = this.clientSessions.get(clientId);
     if (session) {
       this.clientSessions.delete(clientId);
-      this.logger.info(`[ClientSessionService.removeClient] Removed client ${clientId} for user ${session.email}`);
+      this.logger.info(
+        `[ClientSessionService.removeClient] Removed client ${clientId} for user ${session.email}`,
+      );
     }
   }
 
@@ -41,7 +45,9 @@ export class ClientSessionService {
   }
 
   async getClientsByUserId(userId: string): Promise<ClientSession[]> {
-    return Array.from(this.clientSessions.values()).filter(session => session.userId === userId);
+    return Array.from(this.clientSessions.values()).filter(
+      (session) => session.userId === userId,
+    );
   }
 
   async updateLastActivity(clientId: string): Promise<void> {
@@ -67,7 +73,7 @@ export class ClientSessionService {
   }> {
     const clients = Array.from(this.clientSessions.values());
     const clientsByUser: Record<string, number> = {};
-    
+
     let oldestConnection: Date | null = null;
     let newestConnection: Date | null = null;
 
@@ -92,22 +98,28 @@ export class ClientSessionService {
     };
   }
 
-  async cleanupInactiveClients(maxInactiveMinutes: number = 30): Promise<number> {
+  async cleanupInactiveClients(
+    maxInactiveMinutes: number = 30,
+  ): Promise<number> {
     const cutoffTime = new Date(Date.now() - maxInactiveMinutes * 60 * 1000);
     let cleanedCount = 0;
 
     for (const [clientId, session] of this.clientSessions.entries()) {
       const lastActivity = session.lastActivity || session.connectedAt;
-      
+
       if (lastActivity < cutoffTime) {
         this.clientSessions.delete(clientId);
         cleanedCount++;
-        this.logger.info(`[ClientSessionService.cleanupInactiveClients] Cleaned up inactive client ${clientId}`);
+        this.logger.info(
+          `[ClientSessionService.cleanupInactiveClients] Cleaned up inactive client ${clientId}`,
+        );
       }
     }
 
     if (cleanedCount > 0) {
-      this.logger.info(`[ClientSessionService.cleanupInactiveClients] Cleaned up ${cleanedCount} inactive clients`);
+      this.logger.info(
+        `[ClientSessionService.cleanupInactiveClients] Cleaned up ${cleanedCount} inactive clients`,
+      );
     }
 
     return cleanedCount;

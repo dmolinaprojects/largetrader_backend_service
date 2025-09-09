@@ -17,7 +17,10 @@ export class SubscriptionService {
     private readonly logger: PinoLogger,
   ) {}
 
-  async addClientSubscriptions(clientId: string, symbols: string[]): Promise<void> {
+  async addClientSubscriptions(
+    clientId: string,
+    symbols: string[],
+  ): Promise<void> {
     // Inicializar suscripciones del cliente si no existen
     if (!this.clientSubscriptions.has(clientId)) {
       this.clientSubscriptions.set(clientId, new Set());
@@ -41,13 +44,18 @@ export class SubscriptionService {
       const symbolSub = this.symbolSubscriptions.get(symbol)!;
       symbolSub.subscribers.add(clientId);
 
-      this.logger.info(`[SubscriptionService.addClientSubscriptions] Client ${clientId} subscribed to ${symbol}`);
+      this.logger.info(
+        `[SubscriptionService.addClientSubscriptions] Client ${clientId} subscribed to ${symbol}`,
+      );
     }
   }
 
-  async removeClientSubscriptions(clientId: string, symbols?: string[]): Promise<void> {
+  async removeClientSubscriptions(
+    clientId: string,
+    symbols?: string[],
+  ): Promise<void> {
     const clientSymbols = this.clientSubscriptions.get(clientId);
-    
+
     if (!clientSymbols) {
       return;
     }
@@ -66,11 +74,15 @@ export class SubscriptionService {
         // Si no hay más suscriptores, remover el símbolo
         if (symbolSub.subscribers.size === 0) {
           this.symbolSubscriptions.delete(symbol);
-          this.logger.info(`[SubscriptionService.removeClientSubscriptions] Removed symbol ${symbol} - no more subscribers`);
+          this.logger.info(
+            `[SubscriptionService.removeClientSubscriptions] Removed symbol ${symbol} - no more subscribers`,
+          );
         }
       }
 
-      this.logger.info(`[SubscriptionService.removeClientSubscriptions] Client ${clientId} unsubscribed from ${symbol}`);
+      this.logger.info(
+        `[SubscriptionService.removeClientSubscriptions] Client ${clientId} unsubscribed from ${symbol}`,
+      );
     }
 
     // Si se removieron todas las suscripciones, limpiar el cliente
@@ -96,23 +108,35 @@ export class SubscriptionService {
   async getSubscriptionStats(): Promise<{
     totalSymbols: number;
     totalSubscribers: number;
-    symbolsWithSubscribers: Array<{ symbol: string; subscriberCount: number; subscribedAt: Date }>;
-    clientsWithSubscriptions: Array<{ clientId: string; subscriptionCount: number }>;
+    symbolsWithSubscribers: Array<{
+      symbol: string;
+      subscriberCount: number;
+      subscribedAt: Date;
+    }>;
+    clientsWithSubscriptions: Array<{
+      clientId: string;
+      subscriptionCount: number;
+    }>;
   }> {
-    const symbolsWithSubscribers = Array.from(this.symbolSubscriptions.values()).map(sub => ({
+    const symbolsWithSubscribers = Array.from(
+      this.symbolSubscriptions.values(),
+    ).map((sub) => ({
       symbol: sub.symbol,
       subscriberCount: sub.subscribers.size,
       subscribedAt: sub.subscribedAt,
     }));
 
-    const clientsWithSubscriptions = Array.from(this.clientSubscriptions.entries()).map(([clientId, symbols]) => ({
+    const clientsWithSubscriptions = Array.from(
+      this.clientSubscriptions.entries(),
+    ).map(([clientId, symbols]) => ({
       clientId,
       subscriptionCount: symbols.size,
     }));
 
     const totalSubscribers = new Set(
-      Array.from(this.symbolSubscriptions.values())
-        .flatMap(sub => Array.from(sub.subscribers))
+      Array.from(this.symbolSubscriptions.values()).flatMap((sub) =>
+        Array.from(sub.subscribers),
+      ),
     ).size;
 
     return {
@@ -134,11 +158,13 @@ export class SubscriptionService {
 
   async cleanupClientSubscriptions(clientId: string): Promise<void> {
     const clientSymbols = this.clientSubscriptions.get(clientId);
-    
+
     if (clientSymbols) {
       // Remover todas las suscripciones del cliente
       await this.removeClientSubscriptions(clientId, Array.from(clientSymbols));
-      this.logger.info(`[SubscriptionService.cleanupClientSubscriptions] Cleaned up all subscriptions for client ${clientId}`);
+      this.logger.info(
+        `[SubscriptionService.cleanupClientSubscriptions] Cleaned up all subscriptions for client ${clientId}`,
+      );
     }
   }
 
@@ -146,10 +172,12 @@ export class SubscriptionService {
     return Array.from(this.symbolSubscriptions.keys());
   }
 
-  async getSymbolsWithMultipleSubscribers(): Promise<Array<{ symbol: string; subscriberCount: number }>> {
+  async getSymbolsWithMultipleSubscribers(): Promise<
+    Array<{ symbol: string; subscriberCount: number }>
+  > {
     return Array.from(this.symbolSubscriptions.values())
-      .filter(sub => sub.subscribers.size > 1)
-      .map(sub => ({
+      .filter((sub) => sub.subscribers.size > 1)
+      .map((sub) => ({
         symbol: sub.symbol,
         subscriberCount: sub.subscribers.size,
       }));

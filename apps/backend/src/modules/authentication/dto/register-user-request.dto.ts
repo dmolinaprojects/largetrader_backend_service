@@ -1,9 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsPhoneNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsPhoneNumber,
+} from 'class-validator';
 
 export class RegisterUserRequestDto {
   @ApiProperty({
-    description: 'Nombre del usuario',
+    description: 'User first name',
     example: 'Juan',
   })
   @IsNotEmpty()
@@ -11,7 +18,7 @@ export class RegisterUserRequestDto {
   firstName: string;
 
   @ApiProperty({
-    description: 'Apellido del usuario',
+    description: 'User last name',
     example: 'Pérez',
   })
   @IsNotEmpty()
@@ -19,7 +26,7 @@ export class RegisterUserRequestDto {
   lastName: string;
 
   @ApiProperty({
-    description: 'Correo electrónico del usuario',
+    description: 'User email address',
     example: 'juan.perez@example.com',
   })
   @IsEmail()
@@ -27,7 +34,7 @@ export class RegisterUserRequestDto {
   email: string;
 
   @ApiProperty({
-    description: 'Contraseña del usuario (mínimo 8 caracteres)',
+    description: 'User password (minimum 8 characters)',
     example: 'password123',
     minLength: 8,
   })
@@ -37,7 +44,7 @@ export class RegisterUserRequestDto {
   password: string;
 
   @ApiProperty({
-    description: 'Número de teléfono del usuario',
+    description: 'User phone number',
     example: '+1234567890',
     required: false,
   })
@@ -46,7 +53,7 @@ export class RegisterUserRequestDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'Fecha de nacimiento del usuario',
+    description: 'User birth date',
     example: '1990-01-01',
     required: false,
   })

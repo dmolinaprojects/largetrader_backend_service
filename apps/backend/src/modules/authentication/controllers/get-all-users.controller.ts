@@ -1,8 +1,15 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { GetAllUsersResponseDto } from '../dto/get-all-users-response.dto';
 import { GetAllUsersHandlerUseCase } from '../handlers/get-all-users-handler.use-case';
 
 @ApiTags('Authentication - Users')
@@ -17,61 +24,32 @@ export class GetAllUsersController {
   ) {}
 
   @ApiOperation({
-    summary: 'Obtener todos los usuarios',
-    description: 'Endpoint para obtener una lista paginada de todos los usuarios',
+    summary: 'Get all users',
+    description:
+      'Endpoint to get a paginated list of all users',
   })
   @ApiQuery({
     name: 'page',
-    description: 'Número de página',
+    description: 'Page number',
     example: 1,
     required: false,
   })
   @ApiQuery({
     name: 'limit',
-    description: 'Número de elementos por página',
+    description: 'Number of items per page',
     example: 10,
     required: false,
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista de usuarios obtenida exitosamente',
-    schema: {
-      type: 'object',
-      properties: {
-        users: {
-          type: 'array',
-          items: { $ref: '#/components/schemas/UserResponseDto' },
-        },
-        total: {
-          type: 'number',
-          example: 100,
-        },
-        page: {
-          type: 'number',
-          example: 1,
-        },
-        limit: {
-          type: 'number',
-          example: 10,
-        },
-        totalPages: {
-          type: 'number',
-          example: 10,
-        },
-      },
-    },
+    description: 'Users list retrieved successfully',
+    type: GetAllUsersResponseDto,
   })
   @Get()
   async getAllUsers(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ): Promise<{
-    users: UserResponseDto[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  ): Promise<GetAllUsersResponseDto> {
     this.logger.info(
       `[GetAllUsersController.getAllUsers] Getting all users - page: ${page}, limit: ${limit}`,
     );

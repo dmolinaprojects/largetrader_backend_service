@@ -1,8 +1,5 @@
 import { TTransactionArgs } from '@app/core';
-import {
-  Users,
-  UsersRepository,
-} from '@app/shared';
+import { Users, UsersRepository } from '@app/shared';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { HttpErrorCode } from '../../../common/filters/internal/internal-exception-error';
@@ -41,7 +38,9 @@ export class UpdateUserUseCase {
 
     // Si se está actualizando el email, verificar que no exista otro usuario con ese email
     if (userData.email && userData.email !== existingUser.Email) {
-      const userWithEmail = await this.usersRepository.findByEmail(userData.email);
+      const userWithEmail = await this.usersRepository.findByEmail(
+        userData.email,
+      );
 
       if (userWithEmail) {
         this.logger.error(

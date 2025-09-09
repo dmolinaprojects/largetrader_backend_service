@@ -65,6 +65,25 @@ const appConfigSchema = z.object({
     .transform((value) =>
       value.replace(StartQuoteRegex, '').replace(EndQuoteRegex, ''),
     ),
+  // Google OAuth Configuration
+  GOOGLE_WEB_CLIENT_ID: z
+    .string()
+    .min(1)
+    .transform((value) =>
+      value.replace(StartQuoteRegex, '').replace(EndQuoteRegex, ''),
+    ),
+  GOOGLE_ANDROID_CLIENT_ID: z
+    .string()
+    .min(1)
+    .transform((value) =>
+      value.replace(StartQuoteRegex, '').replace(EndQuoteRegex, ''),
+    ),
+  GOOGLE_IOS_CLIENT_ID: z
+    .string()
+    .min(1)
+    .transform((value) =>
+      value.replace(StartQuoteRegex, '').replace(EndQuoteRegex, ''),
+    ),
 });
 
 export function envValidator(config: Record<string, unknown>) {

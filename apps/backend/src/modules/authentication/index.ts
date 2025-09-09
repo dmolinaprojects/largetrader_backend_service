@@ -18,7 +18,7 @@ export { LoginUserRequestDto } from './dto/login-user-request.dto';
 export { UpdateUserRequestDto } from './dto/update-user-request.dto';
 export { UserResponseDto } from './dto/user-response.dto';
 export { AuthResponseDto } from './dto/auth-response.dto';
-export { GoogleLoginRequestDto } from './dto/google-login-request.dto';
+export { GoogleIdTokenLoginRequestDto } from './dto/google-id-token-login-request.dto';
 
 // Entities
 export { UserAuthEntity } from './entity/user-auth.entity';
@@ -33,7 +33,7 @@ export { GetAllUsersUseCase } from './use-cases/get-all-users.use-case';
 export { LoginUserUseCase } from './use-cases/login-user.use-case';
 export { RegisterUserUseCase } from './use-cases/register-user.use-case';
 export { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
-export { GoogleLoginUseCase } from './use-cases/google-login.use-case';
+export { GoogleIdTokenLoginUseCase } from './use-cases/google-id-token-login.use-case';
 
 // Handlers
 export { CreateUserHandlerUseCase } from './handlers/create-user-handler.use-case';
@@ -44,4 +44,4 @@ export { GetAllUsersHandlerUseCase } from './handlers/get-all-users-handler.use-
 export { LoginUserHandlerUseCase } from './handlers/login-user-handler.use-case';
 export { RegisterUserHandlerUseCase } from './handlers/register-user-handler.use-case';
 export { RefreshTokenHandlerUseCase } from './handlers/refresh-token-handler.use-case';
-export { GoogleLoginHandlerUseCase } from './handlers/google-login-handler.use-case';
+export { GoogleIdTokenLoginHandlerUseCase } from './handlers/google-id-token-login-handler.use-case';

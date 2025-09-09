@@ -1,65 +1,113 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient as UsersPrismaClient, Products as PrismaProducts } from '@prisma/users-client';
-import { 
-  ProductsRepository, 
-  ProductsFilters 
+import {
+  PrismaClient as UsersPrismaClient,
+  Products as PrismaProducts,
+} from '@prisma/users-client';
+import {
+  ProductsRepository,
 } from '../../../domain/repositories/users/products.repository';
 import { Products } from '../../../domain/models/users/products.model';
-import { TFindManyArgs, TFindOneArgs, TCreateOneArgs, TUpdateOneArgs, TDeleteOneArgs, TTransactionArgs } from '@app/core';
+import {
+  TFindManyArgs,
+  TFindOneArgs,
+  TCreateOneArgs,
+  TCreateManyArgs,
+  TUpdateOneArgs,
+  TDeleteOneArgs,
+  TUpsertOneArgs,
+  TTransactionArgs,
+  TCountManyArgs,
+} from '@app/core';
 
 @Injectable()
 export class PrismaProductsRepository implements ProductsRepository {
   constructor(private readonly prisma: UsersPrismaClient) {}
 
-  async findMany(args?: TFindManyArgs<ProductsFilters, Products>, tx?: TTransactionArgs): Promise<Products[]> {
-    const where = args?.where ? this.buildWhereClause(args.where) : {};
-    
-    const results = await this.prisma.products.findMany({
-      where,
+  async findMany(
+    args?: TFindManyArgs<Products, Products>,
+  ): Promise<Products[]> {
+    return (await this.prisma.products.findMany({
+      where: args?.where,
       skip: args?.skip,
       take: args?.take,
-      orderBy: { Id: 'asc' },
-    });
-
-    return results;
+      orderBy: args?.orderBy || { Id: 'asc' },
+    })) as unknown as Products[];
   }
 
-  async findOne(args: TFindOneArgs<ProductsFilters, Products>, tx?: TTransactionArgs): Promise<Products | null> {
-    const where = this.buildWhereClause(args.where);
-    
-    const result = await this.prisma.products.findFirst({ where });
-    
-    return result;
+  async findOne(
+    args: TFindOneArgs<Products, Products>,
+  ): Promise<Products | null> {
+    return (await this.prisma.products.findFirst({
+      where: args.where,
+    })) as unknown as Products | null;
   }
 
-  async createOne(args: TCreateOneArgs<Products, Products>, tx?: TTransactionArgs): Promise<Products> {
-    const result = await this.prisma.products.create({
+  async count(filters: Products): Promise<number> {
+    return await this.prisma.products.count({ where: filters });
+  }
+
+  async countMany(
+    args?: TCountManyArgs<Products>,
+    tx?: TTransactionArgs,
+  ): Promise<number> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return await client.products.count({ where: args?.where });
+  }
+
+  // Implementación de métodos faltantes
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return await this.prisma.$transaction(fn);
+  }
+
+  async createOne(
+    args: TCreateOneArgs<Products, Products>,
+    tx?: TTransactionArgs,
+  ): Promise<Products> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.products.create({
       data: args.data as PrismaProducts,
-    });
-
-    return result;
+    })) as Products;
   }
 
-  async updateOne(args: TUpdateOneArgs<ProductsFilters, Products>, tx?: TTransactionArgs): Promise<Products> {
-    const result = await this.prisma.products.update({
+  async createMany(
+    args: TCreateManyArgs<Products>,
+    tx?: TTransactionArgs,
+  ): Promise<void> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    await client.products.createMany({ data: args.data as PrismaProducts[] });
+  }
+
+  async updateOne(
+    args: TUpdateOneArgs<Partial<Products>, Products>,
+    tx?: TTransactionArgs,
+  ): Promise<Products> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.products.update({
       where: { Id: args.where.Id },
       data: args.data as Partial<PrismaProducts>,
-    });
-
-    return result;
+    })) as Products;
   }
 
-  async deleteOne(args: TDeleteOneArgs<ProductsFilters, Products>, tx?: TTransactionArgs): Promise<Products> {
-    const result = await this.prisma.products.delete({
+  async deleteOne(
+    args: TDeleteOneArgs<Partial<Products>, Products>,
+    tx?: TTransactionArgs,
+  ): Promise<Products> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.products.delete({
       where: { Id: args.where.Id },
-    });
-
-    return result;
+    })) as Products;
   }
 
-  async count(filters: ProductsFilters): Promise<number> {
-    const where = this.buildWhereClause(filters);
-    return this.prisma.products.count({ where });
+  async upsertOne(
+    args: TUpsertOneArgs<Partial<Products>, Products>,
+    tx?: TTransactionArgs,
+  ): Promise<Products> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.products.upsert({
+      where: { Id: args.where.Id },
+      update: args.update as Partial<PrismaProducts>,
+      create: args.create as PrismaProducts,
+    })) as Products;
   }
 
   async findByName(name: string): Promise<Products | null> {
@@ -97,29 +145,20 @@ export class PrismaProductsRepository implements ProductsRepository {
     return results;
   }
 
-  async findByPriceRange(minPrice: number, maxPrice: number): Promise<Products[]> {
+  async findByPriceRange(
+    minPrice: number,
+    maxPrice: number,
+  ): Promise<Products[]> {
     const results = await this.prisma.products.findMany({
       where: {
         Price: {
           gte: minPrice,
-          lte: maxPrice
-        }
+          lte: maxPrice,
+        },
       },
       orderBy: { Price: 'asc' },
     });
 
     return results;
-  }
-
-  private buildWhereClause(filters: ProductsFilters) {
-    return {
-      ...(filters.Id && { Id: filters.Id }),
-      ...(filters.Name && { Name: { contains: filters.Name } }),
-      ...(filters.Subscription !== undefined && { Subscription: filters.Subscription }),
-      ...(filters.TrialVersion !== undefined && { TrialVersion: filters.TrialVersion }),
-      ...(filters.Currency && { Currency: filters.Currency }),
-      ...(filters.PriceMin && { Price: { gte: filters.PriceMin } }),
-      ...(filters.PriceMax && { Price: { lte: filters.PriceMax } }),
-    };
   }
 }

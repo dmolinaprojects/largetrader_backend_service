@@ -1,5 +1,11 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RegisterUserRequestDto } from '../dto/register-user-request.dto';
@@ -18,28 +24,30 @@ export class CreateUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Crear nuevo usuario',
-    description: 'Endpoint para crear un nuevo usuario en el sistema',
+    summary: 'Create new user',
+    description: 'Endpoint to create a new user in the system',
   })
   @ApiBody({
     type: RegisterUserRequestDto,
-    description: 'Datos del usuario a crear',
+    description: 'User data to create',
   })
   @ApiResponse({
     status: 201,
-    description: 'Usuario creado exitosamente',
+    description: 'User created successfully',
     type: UserResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
   @ApiResponse({
     status: 409,
-    description: 'El usuario ya existe',
+    description: 'User already exists',
   })
   @Post()
-  async createUser(@Body() userData: RegisterUserRequestDto): Promise<UserResponseDto> {
+  async createUser(
+    @Body() userData: RegisterUserRequestDto,
+  ): Promise<UserResponseDto> {
     this.logger.info(
       `[CreateUserController.createUser] Creating user with email: ${userData.email}`,
     );

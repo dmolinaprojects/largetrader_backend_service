@@ -1,65 +1,115 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient as UsersPrismaClient, StockInfoTechnicals as PrismaStockInfoTechnicals } from '@prisma/users-client';
-import { 
-  StockInfoTechnicalsRepository, 
-  StockInfoTechnicalsFilters 
-} from '../../../domain/repositories/stocks/stock-info-technicals.repository';
+import {
+  PrismaClient as UsersPrismaClient,
+  StockInfoTechnicals as PrismaStockInfoTechnicals,
+} from '@prisma/users-client';
+import { StockInfoTechnicalsRepository } from '../../../domain/repositories/stocks/stock-info-technicals.repository';
 import { StockInfoTechnicals } from '../../../domain/models/stocks/stock-info-technicals.model';
-import { TFindManyArgs, TFindOneArgs, TCreateOneArgs, TUpdateOneArgs, TDeleteOneArgs, TTransactionArgs } from '@app/core';
+import {
+  TFindManyArgs,
+  TFindOneArgs,
+  TCreateOneArgs,
+  TCreateManyArgs,
+  TUpdateOneArgs,
+  TDeleteOneArgs,
+  TUpsertOneArgs,
+  TTransactionArgs,
+  TCountManyArgs,
+} from '@app/core';
 
 @Injectable()
-export class PrismaStockInfoTechnicalsRepository implements StockInfoTechnicalsRepository {
+export class PrismaStockInfoTechnicalsRepository
+  implements StockInfoTechnicalsRepository
+{
   constructor(private readonly prisma: UsersPrismaClient) {}
 
-  async findMany(args?: TFindManyArgs<StockInfoTechnicalsFilters, StockInfoTechnicals>, tx?: TTransactionArgs): Promise<StockInfoTechnicals[]> {
-    const where = args?.where ? this.buildWhereClause(args.where) : {};
-    
-    const results = await this.prisma.stockInfoTechnicals.findMany({
-      where,
+  async findMany(
+    args?: TFindManyArgs<StockInfoTechnicals, StockInfoTechnicals>,
+  ): Promise<StockInfoTechnicals[]> {
+    return (await this.prisma.stockInfoTechnicals.findMany({
+      where: args?.where,
       skip: args?.skip,
       take: args?.take,
-      orderBy: { Id: 'asc' },
-    });
-
-    return results;
+      orderBy: args?.orderBy || { Id: 'asc' },
+    })) as unknown as StockInfoTechnicals[];
   }
 
-  async findOne(args: TFindOneArgs<StockInfoTechnicalsFilters, StockInfoTechnicals>, tx?: TTransactionArgs): Promise<StockInfoTechnicals | null> {
-    const where = this.buildWhereClause(args.where);
-    
-    const result = await this.prisma.stockInfoTechnicals.findFirst({ where });
-    
-    return result;
+  async findOne(
+    args: TFindOneArgs<StockInfoTechnicals, StockInfoTechnicals>,
+  ): Promise<StockInfoTechnicals | null> {
+    return (await this.prisma.stockInfoTechnicals.findFirst({
+      where: args.where,
+    })) as unknown as StockInfoTechnicals | null;
   }
 
-  async createOne(args: TCreateOneArgs<StockInfoTechnicals, StockInfoTechnicals>, tx?: TTransactionArgs): Promise<StockInfoTechnicals> {
-    const result = await this.prisma.stockInfoTechnicals.create({
+  async count(filters: StockInfoTechnicals): Promise<number> {
+    return await this.prisma.stockInfoTechnicals.count({ where: filters });
+  }
+
+  async countMany(
+    args?: TCountManyArgs<StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<number> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return await client.stockInfoTechnicals.count({ where: args?.where });
+  }
+
+  // Implementación de métodos faltantes
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return await this.prisma.$transaction(fn);
+  }
+
+  async createOne(
+    args: TCreateOneArgs<StockInfoTechnicals, StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfoTechnicals> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfoTechnicals.create({
       data: args.data as PrismaStockInfoTechnicals,
-    });
-
-    return result;
+    })) as StockInfoTechnicals;
   }
 
-  async updateOne(args: TUpdateOneArgs<StockInfoTechnicalsFilters, StockInfoTechnicals>, tx?: TTransactionArgs): Promise<StockInfoTechnicals> {
-    const result = await this.prisma.stockInfoTechnicals.update({
+  async createMany(
+    args: TCreateManyArgs<StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<void> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    await client.stockInfoTechnicals.createMany({
+      data: args.data as PrismaStockInfoTechnicals[],
+    });
+  }
+
+  async updateOne(
+    args: TUpdateOneArgs<Partial<StockInfoTechnicals>, StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfoTechnicals> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfoTechnicals.update({
       where: { Id: args.where.Id },
       data: args.data as Partial<PrismaStockInfoTechnicals>,
-    });
-
-    return result;
+    })) as StockInfoTechnicals;
   }
 
-  async deleteOne(args: TDeleteOneArgs<StockInfoTechnicalsFilters, StockInfoTechnicals>, tx?: TTransactionArgs): Promise<StockInfoTechnicals> {
-    const result = await this.prisma.stockInfoTechnicals.delete({
+  async deleteOne(
+    args: TDeleteOneArgs<Partial<StockInfoTechnicals>, StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfoTechnicals> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfoTechnicals.delete({
       where: { Id: args.where.Id },
-    });
-
-    return result;
+    })) as StockInfoTechnicals;
   }
 
-  async count(filters: StockInfoTechnicalsFilters): Promise<number> {
-    const where = this.buildWhereClause(filters);
-    return this.prisma.stockInfoTechnicals.count({ where });
+  async upsertOne(
+    args: TUpsertOneArgs<Partial<StockInfoTechnicals>, StockInfoTechnicals>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfoTechnicals> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfoTechnicals.upsert({
+      where: { Id: args.where.Id },
+      update: args.update as Partial<PrismaStockInfoTechnicals>,
+      create: args.create as PrismaStockInfoTechnicals,
+    })) as StockInfoTechnicals;
   }
 
   async findByStockId(stockId: number): Promise<StockInfoTechnicals | null> {
@@ -70,7 +120,9 @@ export class PrismaStockInfoTechnicalsRepository implements StockInfoTechnicalsR
     return result;
   }
 
-  async findHighPERatioStocks(minPeRatio: number): Promise<StockInfoTechnicals[]> {
+  async findHighPERatioStocks(
+    minPeRatio: number,
+  ): Promise<StockInfoTechnicals[]> {
     const results = await this.prisma.stockInfoTechnicals.findMany({
       where: { PeRatio: { gte: minPeRatio } },
       orderBy: { PeRatio: 'desc' },
@@ -79,7 +131,9 @@ export class PrismaStockInfoTechnicalsRepository implements StockInfoTechnicalsR
     return results;
   }
 
-  async findHighDividendStocks(minDividendYield: number): Promise<StockInfoTechnicals[]> {
+  async findHighDividendStocks(
+    minDividendYield: number,
+  ): Promise<StockInfoTechnicals[]> {
     const results = await this.prisma.stockInfoTechnicals.findMany({
       where: { DividendYield: { gte: minDividendYield } },
       orderBy: { DividendYield: 'desc' },
@@ -88,27 +142,14 @@ export class PrismaStockInfoTechnicalsRepository implements StockInfoTechnicalsR
     return results;
   }
 
-  async findProfitableStocks(minProfitMargin: number): Promise<StockInfoTechnicals[]> {
+  async findProfitableStocks(
+    minProfitMargin: number,
+  ): Promise<StockInfoTechnicals[]> {
     const results = await this.prisma.stockInfoTechnicals.findMany({
       where: { ProfitMargin: { gte: minProfitMargin } },
       orderBy: { ProfitMargin: 'desc' },
     });
 
     return results;
-  }
-
-  private buildWhereClause(filters: StockInfoTechnicalsFilters) {
-    return {
-      ...(filters.Id && { Id: filters.Id }),
-      ...(filters.IdStock && { IdStock: filters.IdStock }),
-      ...(filters.PeRatioMin && { PeRatio: { gte: filters.PeRatioMin } }),
-      ...(filters.PeRatioMax && { PeRatio: { lte: filters.PeRatioMax } }),
-      ...(filters.PegRatioMin && { PegRatio: { gte: filters.PegRatioMin } }),
-      ...(filters.PegRatioMax && { PegRatio: { lte: filters.PegRatioMax } }),
-      ...(filters.DividendYieldMin && { DividendYield: { gte: filters.DividendYieldMin } }),
-      ...(filters.DividendYieldMax && { DividendYield: { lte: filters.DividendYieldMax } }),
-      ...(filters.ProfitMarginMin && { ProfitMargin: { gte: filters.ProfitMarginMin } }),
-      ...(filters.ProfitMarginMax && { ProfitMargin: { lte: filters.ProfitMarginMax } }),
-    };
   }
 }

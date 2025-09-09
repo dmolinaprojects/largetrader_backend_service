@@ -1,30 +1,35 @@
-import { IFindManyRepository, IFindOneRepository, ICreateOneRepository, IUpdateOneRepository, IDeleteOneRepository } from '@app/core';
+import {
+  ITransactionRepository,
+  ICreateOneRepository,
+  ICreateManyRepository,
+  IUpdateOneRepository,
+  IDeleteOneRepository,
+  IUpsertOneRepository,
+  IFindOneRepository,
+  IFindManyRepository,
+  ICountManyRepository,
+} from '@app/core';
 import { Users } from '../../models/users/users.model';
 
-export interface UsersFilters {
-  Id?: number;
-  Email?: string;
-  Name?: string;
-  NickName?: string;
-  Company?: string;
-  Country?: number;
-  City?: string;
-  Admin?: boolean;
-  Publisher?: boolean;
-  Language?: string;
-  ActiveCampaign?: boolean;
-  Bitrix?: boolean;
-  DateFrom?: Date;
-  DateTo?: Date;
-}
-
-export interface UsersRepository 
-  extends IFindManyRepository<UsersFilters, Users>,
-          IFindOneRepository<UsersFilters, Users>,
-          ICreateOneRepository<Users>,
-          IUpdateOneRepository<UsersFilters, Users>,
-          IDeleteOneRepository<UsersFilters, Users> {
-  
+export interface UsersRepository
+  extends ITransactionRepository,
+    ICreateOneRepository<Users>,
+    ICreateManyRepository<Users>,
+    IUpdateOneRepository<
+      Pick<Users, 'Id'> | Pick<Users, 'Email'> | Pick<Users, 'GoogleId'>,
+      Users
+    >,
+    IDeleteOneRepository<
+      Pick<Users, 'Id'> | Pick<Users, 'Email'> | Pick<Users, 'GoogleId'>,
+      Users
+    >,
+    IUpsertOneRepository<
+      Pick<Users, 'Id'> | Pick<Users, 'Email'> | Pick<Users, 'GoogleId'>,
+      Users
+    >,
+    IFindOneRepository<Users, Users>,
+    IFindManyRepository<Users, Users>,
+    ICountManyRepository<Users> {
   findByEmail(email: string): Promise<Users | null>;
   findByGoogleId(googleId: string): Promise<Users | null>;
   findByFacebookId(facebookId: string): Promise<Users | null>;

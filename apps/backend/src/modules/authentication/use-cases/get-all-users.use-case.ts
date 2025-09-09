@@ -1,8 +1,5 @@
 import { TTransactionArgs } from '@app/core';
-import {
-  Users,
-  UsersRepository,
-} from '@app/shared';
+import { Users, UsersRepository } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
@@ -34,7 +31,7 @@ export class GetAllUsersUseCase {
         },
         tx,
       );
-      
+
       // Para obtener el total, intentamos hacer una consulta separada
       // pero manejamos el error de datos inválidos
       let total = 0;

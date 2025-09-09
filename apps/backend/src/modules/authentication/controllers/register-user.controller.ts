@@ -15,28 +15,30 @@ export class RegisterUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Registrar usuario',
-    description: 'Endpoint para crear nuevos usuarios y obtener tokens JWT',
+    summary: 'Register user',
+    description: 'Endpoint to create new users and obtain JWT tokens',
   })
   @ApiBody({
     type: RegisterUserRequestDto,
-    description: 'Datos del usuario a registrar',
+    description: 'User data to register',
   })
   @ApiResponse({
     status: 201,
-    description: 'Usuario registrado exitosamente',
+    description: 'User registered successfully',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 409,
-    description: 'El usuario ya existe',
+    description: 'User already exists',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
   @Post('register')
-  async register(@Body() userData: RegisterUserRequestDto): Promise<AuthResponseDto> {
+  async register(
+    @Body() userData: RegisterUserRequestDto,
+  ): Promise<AuthResponseDto> {
     this.logger.info(
       `[RegisterUserController.register] Registration attempt for email: ${userData.email}`,
     );

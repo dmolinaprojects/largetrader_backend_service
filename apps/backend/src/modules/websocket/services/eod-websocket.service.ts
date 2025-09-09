@@ -4,12 +4,12 @@ import { ConfigService } from '@nestjs/config';
 import * as WebSocket from 'ws';
 
 export interface EodMarketData {
-  s: string;  // symbol
-  a: number;  // ask price
-  b: number;  // bid price
+  s: string; // symbol
+  a: number; // ask price
+  b: number; // bid price
   dc: number; // change in cents
   dd: number; // change in decimals
-  t: number;  // timestamp
+  t: number; // timestamp
 }
 
 @Injectable()
@@ -31,30 +31,37 @@ export class EodWebSocketService implements OnModuleDestroy {
     private readonly logger: PinoLogger,
     private readonly configService: ConfigService,
   ) {
-    this.apiToken = this.configService.get<string>('EOD_API_TOKEN') || 'your-api-token-here';
+    this.apiToken =
+      this.configService.get<string>('EOD_API_TOKEN') || 'your-api-token-here';
   }
 
   async connect(symbols: string[]): Promise<void> {
     if (this.isConnected) {
-      this.logger.info(`[EodWebSocketService.connect] Already connected, updating subscriptions`);
+      this.logger.info(
+        `[EodWebSocketService.connect] Already connected, updating subscriptions`,
+      );
       await this.updateSubscriptions(symbols);
       return;
     }
 
     try {
       const url = `${this.baseUrl}/ws/forex?api_token=${this.apiToken}`;
-      this.logger.info(`[EodWebSocketService.connect] Connecting to EOD WebSocket: ${url}`);
+      this.logger.info(
+        `[EodWebSocketService.connect] Connecting to EOD WebSocket: ${url}`,
+      );
 
       this.ws = new WebSocket(url);
 
       this.ws.on('open', () => {
-        this.logger.info(`[EodWebSocketService.connect] Connected to EOD WebSocket`);
+        this.logger.info(
+          `[EodWebSocketService.connect] Connected to EOD WebSocket`,
+        );
         this.isConnected = true;
         this.reconnectAttempts = 0;
-        
+
         // Suscribirse a los símbolos
         this.subscribeToSymbols(symbols);
-        
+
         // Iniciar heartbeat
         this.startHeartbeat();
       });
@@ -64,34 +71,43 @@ export class EodWebSocketService implements OnModuleDestroy {
           const message = JSON.parse(data.toString());
           this.handleMessage(message);
         } catch (error) {
-          this.logger.error(`[EodWebSocketService.connect] Error parsing message: ${error.message}`);
+          this.logger.error(
+            `[EodWebSocketService.connect] Error parsing message: ${error.message}`,
+          );
         }
       });
 
       this.ws.on('close', (code: number, reason: string) => {
-        this.logger.warn(`[EodWebSocketService.connect] Connection closed: ${code} - ${reason}`);
+        this.logger.warn(
+          `[EodWebSocketService.connect] Connection closed: ${code} - ${reason}`,
+        );
         this.isConnected = false;
         this.stopHeartbeat();
         this.handleReconnect();
       });
 
       this.ws.on('error', (error: Error) => {
-        this.logger.error(`[EodWebSocketService.connect] WebSocket error: ${error.message}`);
+        this.logger.error(
+          `[EodWebSocketService.connect] WebSocket error: ${error.message}`,
+        );
         this.isConnected = false;
         this.stopHeartbeat();
         this.handleReconnect();
       });
-
     } catch (error) {
-      this.logger.error(`[EodWebSocketService.connect] Failed to connect: ${error.message}`);
+      this.logger.error(
+        `[EodWebSocketService.connect] Failed to connect: ${error.message}`,
+      );
       throw error;
     }
   }
 
   async disconnect(): Promise<void> {
     if (this.ws && this.isConnected) {
-      this.logger.info(`[EodWebSocketService.disconnect] Disconnecting from EOD WebSocket`);
-      
+      this.logger.info(
+        `[EodWebSocketService.disconnect] Disconnecting from EOD WebSocket`,
+      );
+
       this.stopHeartbeat();
       this.ws.close();
       this.ws = null;
@@ -102,20 +118,26 @@ export class EodWebSocketService implements OnModuleDestroy {
 
   async updateSubscriptions(symbols: string[]): Promise<void> {
     if (!this.isConnected || !this.ws) {
-      this.logger.warn(`[EodWebSocketService.updateSubscriptions] Not connected to EOD WebSocket`);
+      this.logger.warn(
+        `[EodWebSocketService.updateSubscriptions] Not connected to EOD WebSocket`,
+      );
       return;
     }
 
     // Agregar nuevos símbolos
-    const newSymbols = symbols.filter(symbol => !this.subscribedSymbols.has(symbol));
-    
+    const newSymbols = symbols.filter(
+      (symbol) => !this.subscribedSymbols.has(symbol),
+    );
+
     if (newSymbols.length > 0) {
       this.subscribeToSymbols(newSymbols);
     }
 
     // Remover símbolos que ya no se necesitan
-    const symbolsToRemove = Array.from(this.subscribedSymbols).filter(symbol => !symbols.includes(symbol));
-    
+    const symbolsToRemove = Array.from(this.subscribedSymbols).filter(
+      (symbol) => !symbols.includes(symbol),
+    );
+
     if (symbolsToRemove.length > 0) {
       this.unsubscribeFromSymbols(symbolsToRemove);
     }
@@ -143,12 +165,14 @@ export class EodWebSocketService implements OnModuleDestroy {
       symbols: symbols.join(','),
     };
 
-    this.logger.info(`[EodWebSocketService.subscribeToSymbols] Subscribing to symbols: ${symbols.join(', ')}`);
-    
+    this.logger.info(
+      `[EodWebSocketService.subscribeToSymbols] Subscribing to symbols: ${symbols.join(', ')}`,
+    );
+
     this.ws.send(JSON.stringify(message));
-    
+
     // Agregar a la lista de símbolos suscritos
-    symbols.forEach(symbol => this.subscribedSymbols.add(symbol));
+    symbols.forEach((symbol) => this.subscribedSymbols.add(symbol));
   }
 
   private unsubscribeFromSymbols(symbols: string[]): void {
@@ -161,17 +185,23 @@ export class EodWebSocketService implements OnModuleDestroy {
       symbols: symbols.join(','),
     };
 
-    this.logger.info(`[EodWebSocketService.unsubscribeFromSymbols] Unsubscribing from symbols: ${symbols.join(', ')}`);
-    
+    this.logger.info(
+      `[EodWebSocketService.unsubscribeFromSymbols] Unsubscribing from symbols: ${symbols.join(', ')}`,
+    );
+
     this.ws.send(JSON.stringify(message));
-    
+
     // Remover de la lista de símbolos suscritos
-    symbols.forEach(symbol => this.subscribedSymbols.delete(symbol));
+    symbols.forEach((symbol) => this.subscribedSymbols.delete(symbol));
   }
 
   private handleMessage(message: any): void {
     // Verificar si es un mensaje de datos de mercado
-    if (message.s && typeof message.a === 'number' && typeof message.b === 'number') {
+    if (
+      message.s &&
+      typeof message.a === 'number' &&
+      typeof message.b === 'number'
+    ) {
       const marketData: EodMarketData = {
         s: message.s,
         a: message.a,
@@ -181,14 +211,18 @@ export class EodWebSocketService implements OnModuleDestroy {
         t: message.t || Date.now(),
       };
 
-      this.logger.debug(`[EodWebSocketService.handleMessage] Received market data for ${marketData.s}: ask=${marketData.a}, bid=${marketData.b}`);
+      this.logger.debug(
+        `[EodWebSocketService.handleMessage] Received market data for ${marketData.s}: ask=${marketData.a}, bid=${marketData.b}`,
+      );
 
       // Llamar al callback si está configurado
       if (this.dataCallback) {
         this.dataCallback(marketData);
       }
     } else {
-      this.logger.debug(`[EodWebSocketService.handleMessage] Received non-market data message: ${JSON.stringify(message)}`);
+      this.logger.debug(
+        `[EodWebSocketService.handleMessage] Received non-market data message: ${JSON.stringify(message)}`,
+      );
     }
   }
 
@@ -209,12 +243,16 @@ export class EodWebSocketService implements OnModuleDestroy {
 
   private handleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.logger.error(`[EodWebSocketService.handleReconnect] Max reconnection attempts reached`);
+      this.logger.error(
+        `[EodWebSocketService.handleReconnect] Max reconnection attempts reached`,
+      );
       return;
     }
 
     this.reconnectAttempts++;
-    this.logger.info(`[EodWebSocketService.handleReconnect] Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${this.reconnectInterval}ms`);
+    this.logger.info(
+      `[EodWebSocketService.handleReconnect] Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${this.reconnectInterval}ms`,
+    );
 
     setTimeout(() => {
       if (this.subscribedSymbols.size > 0) {

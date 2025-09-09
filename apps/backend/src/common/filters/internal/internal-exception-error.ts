@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 export enum HttpErrorCode {
   NOT_FOUND = 'NOT_FOUND',
   USER_NOT_FOUND = 'USER_NOT_FOUND',

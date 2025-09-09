@@ -1,9 +1,11 @@
 import { TTransactionArgs } from '@app/core';
+import { Users, UsersRepository } from '@app/shared';
 import {
-  Users,
-  UsersRepository,
-} from '@app/shared';
-import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { HttpErrorCode } from '../../../common/filters/internal/internal-exception-error';
 import { TokenService } from '../../../shared/token/token-service';
@@ -25,9 +27,7 @@ export class RefreshTokenUseCase {
     refreshToken: string,
     tx?: TTransactionArgs,
   ): Promise<AuthResponseDto> {
-    this.logger.info(
-      `[RefreshTokenUseCase.execute] Refreshing token`,
-    );
+    this.logger.info(`[RefreshTokenUseCase.execute] Refreshing token`);
 
     try {
       // Validar el refresh token
@@ -56,7 +56,8 @@ export class RefreshTokenUseCase {
       };
 
       const accessToken = this.tokenService.generateAccessToken(newPayload);
-      const newRefreshToken = this.tokenService.generateRefreshToken(newPayload);
+      const newRefreshToken =
+        this.tokenService.generateRefreshToken(newPayload);
 
       // Obtener tiempo de expiración del access token (15 minutos)
       const expiresIn = 15 * 60; // 15 minutos en segundos

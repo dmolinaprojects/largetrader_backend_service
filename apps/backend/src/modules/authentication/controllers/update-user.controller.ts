@@ -1,5 +1,12 @@
 import { Controller, Put, Param, Body, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { UpdateUserRequestDto } from '../dto/update-user-request.dto';
@@ -18,34 +25,34 @@ export class UpdateUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Actualizar usuario',
-    description: 'Endpoint para actualizar un usuario existente',
+    summary: 'Update user',
+    description: 'Endpoint to update an existing user',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID único del usuario',
+    description: 'Unique user ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiBody({
     type: UpdateUserRequestDto,
-    description: 'Datos del usuario a actualizar',
+    description: 'User data to update',
   })
   @ApiResponse({
     status: 200,
-    description: 'Usuario actualizado exitosamente',
+    description: 'User updated successfully',
     type: UserResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
   @ApiResponse({
     status: 404,
-    description: 'Usuario no encontrado',
+    description: 'User not found',
   })
   @ApiResponse({
     status: 409,
-    description: 'El email ya está en uso por otro usuario',
+    description: 'Email is already in use by another user',
   })
   @Put(':id')
   async updateUser(

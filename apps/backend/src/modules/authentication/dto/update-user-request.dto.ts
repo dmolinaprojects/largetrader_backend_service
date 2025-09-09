@@ -1,9 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, IsPhoneNumber, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsPhoneNumber,
+  IsBoolean,
+} from 'class-validator';
 
 export class UpdateUserRequestDto {
   @ApiProperty({
-    description: 'Nombre del usuario',
+    description: 'User first name',
     example: 'Juan',
     required: false,
   })
@@ -12,7 +18,7 @@ export class UpdateUserRequestDto {
   firstName?: string;
 
   @ApiProperty({
-    description: 'Apellido del usuario',
+    description: 'User last name',
     example: 'Pérez',
     required: false,
   })
@@ -21,7 +27,7 @@ export class UpdateUserRequestDto {
   lastName?: string;
 
   @ApiProperty({
-    description: 'Correo electrónico del usuario',
+    description: 'User email address',
     example: 'juan.perez@example.com',
     required: false,
   })
@@ -30,7 +36,7 @@ export class UpdateUserRequestDto {
   email?: string;
 
   @ApiProperty({
-    description: 'Número de teléfono del usuario',
+    description: 'User phone number',
     example: '+1234567890',
     required: false,
   })
@@ -39,7 +45,7 @@ export class UpdateUserRequestDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'Fecha de nacimiento del usuario',
+    description: 'User birth date',
     example: '1990-01-01',
     required: false,
   })
@@ -48,7 +54,7 @@ export class UpdateUserRequestDto {
   birthDate?: string;
 
   @ApiProperty({
-    description: 'Estado activo del usuario',
+    description: 'User active status',
     example: true,
     required: false,
   })

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ZodEffects, ZodObject, ZodPipeline, ZodUnion } from 'zod';
 
 export function envValidatorUtil(

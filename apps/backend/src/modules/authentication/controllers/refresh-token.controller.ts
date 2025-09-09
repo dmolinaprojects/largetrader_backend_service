@@ -15,33 +15,38 @@ export class RefreshTokenController {
   ) {}
 
   @ApiOperation({
-    summary: 'Renovar token de acceso',
-    description: 'Endpoint para renovar el access token usando el refresh token',
+    summary: 'Refresh access token',
+    description:
+      'Endpoint to refresh the access token using the refresh token',
   })
   @ApiBody({
     type: RefreshTokenRequestDto,
-    description: 'Refresh token para renovar el access token',
+    description: 'Refresh token to renew the access token',
   })
   @ApiResponse({
     status: 200,
-    description: 'Token renovado exitosamente',
+    description: 'Token refreshed successfully',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 401,
-    description: 'Refresh token inválido o expirado',
+    description: 'Invalid or expired refresh token',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
   @Post('refresh')
-  async refreshToken(@Body() body: RefreshTokenRequestDto): Promise<AuthResponseDto> {
+  async refreshToken(
+    @Body() body: RefreshTokenRequestDto,
+  ): Promise<AuthResponseDto> {
     this.logger.info(
       `[RefreshTokenController.refreshToken] Token refresh attempt`,
     );
 
-    const response = await this.refreshTokenHandlerUseCase.execute(body.refreshToken);
+    const response = await this.refreshTokenHandlerUseCase.execute(
+      body.refreshToken,
+    );
 
     this.logger.info(
       `[RefreshTokenController.refreshToken] Token refresh successful`,

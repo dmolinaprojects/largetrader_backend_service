@@ -5,8 +5,6 @@ import { TokenModule } from './token/token.module';
 @Module({
   imports: [ConfigModule, TokenModule],
   providers: [],
-  exports: [
-    TokenModule,
-  ],
+  exports: [TokenModule],
 })
 export class SharedModule {}

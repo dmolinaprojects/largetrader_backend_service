@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { CorrelationIdMiddlewareFn } from '@app/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -94,9 +93,11 @@ async function bootstrap() {
 
   const url = await app.getUrl();
 
-  loggerService.log(`🚀 Application Restful is running on: ${url}/api/v1/largetrader`);
   loggerService.log(
-    `🚀 Application Openapi Restful is running on: ${url}/api/v1/largetrader/docs`,
+    `[STARTED] Application Restful is running on: ${url}/api/v1/largetrader`,
+  );
+  loggerService.log(
+    `[STARTED] Application Openapi Restful is running on: ${url}/api/v1/largetrader/docs`,
   );
 }
 void bootstrap();

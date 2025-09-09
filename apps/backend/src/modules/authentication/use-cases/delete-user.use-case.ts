@@ -1,7 +1,5 @@
 import { TTransactionArgs } from '@app/core';
-import {
-  UsersRepository,
-} from '@app/shared';
+import { UsersRepository } from '@app/shared';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { HttpErrorCode } from '../../../common/filters/internal/internal-exception-error';

@@ -1,8 +1,5 @@
 import { TTransactionArgs } from '@app/core';
-import {
-  Users,
-  UsersRepository,
-} from '@app/shared';
+import { Users, UsersRepository } from '@app/shared';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import * as bcrypt from 'bcrypt';
@@ -76,7 +73,10 @@ export class CreateUserUseCase {
       DateRegister: new Date(),
     };
 
-    const createdUser = await this.usersRepository.createOne({ data: userToCreate }, tx);
+    const createdUser = await this.usersRepository.createOne(
+      { data: userToCreate },
+      tx,
+    );
 
     this.logger.info(
       `[CreateUserUseCase.execute] User created successfully with ID: ${createdUser.Id}`,

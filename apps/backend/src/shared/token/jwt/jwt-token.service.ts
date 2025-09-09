@@ -14,7 +14,7 @@ export class JwtTokenService implements TokenService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   /**
    * Generates an access token using the provided payload.
@@ -24,8 +24,11 @@ export class JwtTokenService implements TokenService {
    * @returns The generated access token as a string.
    */
   generateAccessToken(payload: Record<string, any>): string {
-    const secret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'default-access-secret-change-in-production';
-    const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
+    const secret =
+      this.configService.get<string>('JWT_ACCESS_SECRET') ||
+      'default-access-secret-change-in-production';
+    const expiresIn =
+      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
 
     return this.jwtService.sign(payload, {
       secret,
@@ -41,8 +44,11 @@ export class JwtTokenService implements TokenService {
    * @returns The generated refresh token as a string.
    */
   generateRefreshToken(payload: Record<string, any>): string {
-    const secret = this.configService.get<string>('JWT_REFRESH_SECRET') || 'default-refresh-secret-change-in-production';
-    const expiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+    const secret =
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      'default-refresh-secret-change-in-production';
+    const expiresIn =
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
 
     return this.jwtService.sign(payload, {
       secret,
@@ -68,16 +74,24 @@ export class JwtTokenService implements TokenService {
 
       switch (type) {
         case 'access':
-          secret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'default-access-secret-change-in-production';
+          secret =
+            this.configService.get<string>('JWT_ACCESS_SECRET') ||
+            'default-access-secret-change-in-production';
           break;
         case 'refresh':
-          secret = this.configService.get<string>('JWT_REFRESH_SECRET') || 'default-refresh-secret-change-in-production';
+          secret =
+            this.configService.get<string>('JWT_REFRESH_SECRET') ||
+            'default-refresh-secret-change-in-production';
           break;
         case 'socialLogin':
-          secret = this.configService.get<string>('JWT_SOCIAL_LOGIN_SECRET') || 'default-social-login-secret-change-in-production';
+          secret =
+            this.configService.get<string>('JWT_SOCIAL_LOGIN_SECRET') ||
+            'default-social-login-secret-change-in-production';
           break;
         case 'recoverAccount':
-          secret = this.configService.get<string>('JWT_RECOVER_ACCOUNT_SECRET') || 'default-recover-account-secret-change-in-production';
+          secret =
+            this.configService.get<string>('JWT_RECOVER_ACCOUNT_SECRET') ||
+            'default-recover-account-secret-change-in-production';
           break;
         default:
           throw new InternalExceptionError(HttpErrorCode.UNAUTHORIZED);

@@ -1,65 +1,109 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient as UsersPrismaClient, Orders as PrismaOrders } from '@prisma/users-client';
-import { 
-  OrdersRepository, 
-  OrdersFilters 
+import {
+  PrismaClient as UsersPrismaClient,
+  Orders as PrismaOrders,
+} from '@prisma/users-client';
+import {
+  OrdersRepository,
 } from '../../../domain/repositories/users/orders.repository';
 import { Orders } from '../../../domain/models/users/orders.model';
-import { TFindManyArgs, TFindOneArgs, TCreateOneArgs, TUpdateOneArgs, TDeleteOneArgs, TTransactionArgs } from '@app/core';
+import {
+  TFindManyArgs,
+  TFindOneArgs,
+  TCreateOneArgs,
+  TCreateManyArgs,
+  TUpdateOneArgs,
+  TDeleteOneArgs,
+  TUpsertOneArgs,
+  TTransactionArgs,
+  TCountManyArgs,
+} from '@app/core';
 
 @Injectable()
 export class PrismaOrdersRepository implements OrdersRepository {
   constructor(private readonly prisma: UsersPrismaClient) {}
 
-  async findMany(args?: TFindManyArgs<OrdersFilters, Orders>, tx?: TTransactionArgs): Promise<Orders[]> {
-    const where = args?.where ? this.buildWhereClause(args.where) : {};
-    
-    const results = await this.prisma.orders.findMany({
-      where,
+  async findMany(args?: TFindManyArgs<Orders, Orders>): Promise<Orders[]> {
+    return (await this.prisma.orders.findMany({
+      where: args?.where,
       skip: args?.skip,
       take: args?.take,
-      orderBy: { Id: 'desc' },
-    });
-
-    return results;
+      orderBy: args?.orderBy || { Id: 'desc' },
+    })) as unknown as Orders[];
   }
 
-  async findOne(args: TFindOneArgs<OrdersFilters, Orders>, tx?: TTransactionArgs): Promise<Orders | null> {
-    const where = this.buildWhereClause(args.where);
-    
-    const result = await this.prisma.orders.findFirst({ where });
-    
-    return result;
+  async findOne(args: TFindOneArgs<Orders, Orders>): Promise<Orders | null> {
+    return (await this.prisma.orders.findFirst({
+      where: args.where,
+    })) as unknown as Orders | null;
   }
 
-  async createOne(args: TCreateOneArgs<Orders, Orders>, tx?: TTransactionArgs): Promise<Orders> {
-    const result = await this.prisma.orders.create({
+  async count(filters: Orders): Promise<number> {
+    return await this.prisma.orders.count({ where: filters });
+  }
+
+  async countMany(
+    args?: TCountManyArgs<Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<number> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return await client.orders.count({ where: args?.where });
+  }
+
+  // Implementación de métodos faltantes
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return await this.prisma.$transaction(fn);
+  }
+
+  async createOne(
+    args: TCreateOneArgs<Orders, Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<Orders> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.orders.create({
       data: args.data as PrismaOrders,
-    });
-
-    return result;
+    })) as Orders;
   }
 
-  async updateOne(args: TUpdateOneArgs<OrdersFilters, Orders>, tx?: TTransactionArgs): Promise<Orders> {
-    const result = await this.prisma.orders.update({
+  async createMany(
+    args: TCreateManyArgs<Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<void> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    await client.orders.createMany({ data: args.data as PrismaOrders[] });
+  }
+
+  async updateOne(
+    args: TUpdateOneArgs<Partial<Orders>, Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<Orders> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.orders.update({
       where: { Id: args.where.Id },
       data: args.data as Partial<PrismaOrders>,
-    });
-
-    return result;
+    })) as Orders;
   }
 
-  async deleteOne(args: TDeleteOneArgs<OrdersFilters, Orders>, tx?: TTransactionArgs): Promise<Orders> {
-    const result = await this.prisma.orders.delete({
+  async deleteOne(
+    args: TDeleteOneArgs<Partial<Orders>, Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<Orders> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.orders.delete({
       where: { Id: args.where.Id },
-    });
-
-    return result;
+    })) as Orders;
   }
 
-  async count(filters: OrdersFilters): Promise<number> {
-    const where = this.buildWhereClause(filters);
-    return this.prisma.orders.count({ where });
+  async upsertOne(
+    args: TUpsertOneArgs<Partial<Orders>, Orders>,
+    tx?: TTransactionArgs,
+  ): Promise<Orders> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.orders.upsert({
+      where: { Id: args.where.Id },
+      update: args.update as Partial<PrismaOrders>,
+      create: args.create as PrismaOrders,
+    })) as Orders;
   }
 
   async findByUserId(userId: number): Promise<Orders[]> {
@@ -82,9 +126,9 @@ export class PrismaOrdersRepository implements OrdersRepository {
 
   async findActiveSubscriptions(): Promise<Orders[]> {
     const results = await this.prisma.orders.findMany({
-      where: { 
+      where: {
         Subscription: true,
-        SubscriptionPaused: false 
+        SubscriptionPaused: false,
       },
       orderBy: { DateInsert: 'desc' },
     });
@@ -97,8 +141,8 @@ export class PrismaOrdersRepository implements OrdersRepository {
     const results = await this.prisma.orders.findMany({
       where: {
         DateNextPayment: {
-          lt: now
-        }
+          lt: now,
+        },
       },
       orderBy: { DateNextPayment: 'asc' },
     });
@@ -113,17 +157,5 @@ export class PrismaOrdersRepository implements OrdersRepository {
     });
 
     return results;
-  }
-
-  private buildWhereClause(filters: OrdersFilters) {
-    return {
-      ...(filters.Id && { Id: filters.Id }),
-      ...(filters.IdUser && { IdUser: filters.IdUser }),
-      ...(filters.IdProduct && { IdProduct: filters.IdProduct }),
-      ...(filters.PaymentStatus && { PaymentStatus: filters.PaymentStatus }),
-      ...(filters.Subscription !== undefined && { Subscription: filters.Subscription }),
-      ...(filters.DateFrom && { DateInsert: { gte: filters.DateFrom } }),
-      ...(filters.DateTo && { DateInsert: { lte: filters.DateTo } }),
-    };
   }
 }

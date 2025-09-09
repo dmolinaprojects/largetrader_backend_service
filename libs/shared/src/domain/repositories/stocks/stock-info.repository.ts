@@ -1,26 +1,35 @@
-import { IFindManyRepository, IFindOneRepository, ICreateOneRepository, IUpdateOneRepository, IDeleteOneRepository } from '@app/core';
+import {
+  ITransactionRepository,
+  ICreateOneRepository,
+  ICreateManyRepository,
+  IUpdateOneRepository,
+  IDeleteOneRepository,
+  IUpsertOneRepository,
+  IFindOneRepository,
+  IFindManyRepository,
+  ICountManyRepository,
+} from '@app/core';
 import { StockInfo } from '../../models/stocks/stock-info.model';
 
-export interface StockInfoFilters {
-  Id?: number;
-  Ticker?: string;
-  Name?: string;
-  Country?: string;
-  Exchange?: string;
-  Currency?: string;
-  Type?: string;
-  Sector?: string;
-  Industry?: string;
-  IsDelisted?: boolean;
-}
-
-export interface StockInfoRepository 
-  extends IFindManyRepository<StockInfoFilters, StockInfo>,
-          IFindOneRepository<StockInfoFilters, StockInfo>,
-          ICreateOneRepository<StockInfo>,
-          IUpdateOneRepository<StockInfoFilters, StockInfo>,
-          IDeleteOneRepository<StockInfoFilters, StockInfo> {
-  
+export interface StockInfoRepository
+  extends ITransactionRepository,
+    ICreateOneRepository<StockInfo>,
+    ICreateManyRepository<StockInfo>,
+    IUpdateOneRepository<
+      Pick<StockInfo, 'Id'> | Pick<StockInfo, 'Ticker'>,
+      StockInfo
+    >,
+    IDeleteOneRepository<
+      Pick<StockInfo, 'Id'> | Pick<StockInfo, 'Ticker'>,
+      StockInfo
+    >,
+    IUpsertOneRepository<
+      Pick<StockInfo, 'Id'> | Pick<StockInfo, 'Ticker'>,
+      StockInfo
+    >,
+    IFindOneRepository<StockInfo, StockInfo>,
+    IFindManyRepository<StockInfo, StockInfo>,
+    ICountManyRepository<StockInfo> {
   findByTicker(ticker: string): Promise<StockInfo | null>;
   findByExchange(exchange: string): Promise<StockInfo[]>;
   findBySector(sector: string): Promise<StockInfo[]>;

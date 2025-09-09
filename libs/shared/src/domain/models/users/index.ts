@@ -1,4 +1,3 @@
-export * from './user-stocks.model';
 export * from './user-settings.model';
 export * from './users.model';
 export * from './orders.model';

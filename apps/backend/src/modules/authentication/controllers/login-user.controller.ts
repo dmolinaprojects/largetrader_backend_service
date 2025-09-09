@@ -15,28 +15,30 @@ export class LoginUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Iniciar sesión',
-    description: 'Endpoint para autenticar usuarios y obtener tokens JWT',
+    summary: 'Login',
+    description: 'Endpoint to authenticate users and obtain JWT tokens',
   })
   @ApiBody({
     type: LoginUserRequestDto,
-    description: 'Credenciales de acceso del usuario',
+    description: 'User login credentials',
   })
   @ApiResponse({
     status: 200,
-    description: 'Inicio de sesión exitoso',
+    description: 'Login successful',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 401,
-    description: 'Credenciales inválidas',
+    description: 'Invalid credentials',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de entrada inválidos',
+    description: 'Invalid input data',
   })
-  @Post('login')
-  async login(@Body() loginData: LoginUserRequestDto): Promise<AuthResponseDto> {
+  @Post('email/login')
+  async login(
+    @Body() loginData: LoginUserRequestDto,
+  ): Promise<AuthResponseDto> {
     this.logger.info(
       `[LoginUserController.login] Login attempt for email: ${loginData.email}`,
     );

@@ -1,5 +1,11 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { UserResponseDto } from '../dto/user-response.dto';
@@ -17,28 +23,26 @@ export class GetUserController {
   ) {}
 
   @ApiOperation({
-    summary: 'Obtener usuario por ID',
-    description: 'Endpoint para obtener un usuario específico por su ID',
+    summary: 'Get user by ID',
+    description: 'Endpoint to get a specific user by their ID',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID único del usuario',
+    description: 'Unique user ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     status: 200,
-    description: 'Usuario obtenido exitosamente',
+    description: 'User retrieved successfully',
     type: UserResponseDto,
   })
   @ApiResponse({
     status: 404,
-    description: 'Usuario no encontrado',
+    description: 'User not found',
   })
   @Get(':id')
   async getUser(@Param('id') id: string): Promise<UserResponseDto> {
-    this.logger.info(
-      `[GetUserController.getUser] Getting user with ID: ${id}`,
-    );
+    this.logger.info(`[GetUserController.getUser] Getting user with ID: ${id}`);
 
     const response = await this.getUserHandlerUseCase.execute(id);
 

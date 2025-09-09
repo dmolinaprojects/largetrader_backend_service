@@ -18,8 +18,8 @@ export interface StockInfoTechnicals {
   QuarterlyEarningsGrowthYoy: number;
   ForwardPe: number;
   WeekHigh: number; // 52WeekHigh
-  WeekLow: number;  // 52WeekLow
-  DayMA: number;    // 50DayMA
+  WeekLow: number; // 52WeekLow
+  DayMA: number; // 50DayMA
   DayMA200: number; // 200DayMA
   SharesShort: number;
   SharesShortPriorMonth: number;

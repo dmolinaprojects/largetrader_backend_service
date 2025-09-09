@@ -1,65 +1,111 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient as UsersPrismaClient, StockInfo as PrismaStockInfo } from '@prisma/users-client';
-import { 
-  StockInfoRepository, 
-  StockInfoFilters 
-} from '../../../domain/repositories/stocks/stock-info.repository';
+import {
+  PrismaClient as UsersPrismaClient,
+  StockInfo as PrismaStockInfo,
+} from '@prisma/users-client';
+import { StockInfoRepository } from '../../../domain/repositories/stocks/stock-info.repository';
 import { StockInfo } from '../../../domain/models/stocks/stock-info.model';
-import { TFindManyArgs, TFindOneArgs, TCreateOneArgs, TUpdateOneArgs, TDeleteOneArgs, TTransactionArgs } from '@app/core';
+import {
+  TFindManyArgs,
+  TFindOneArgs,
+  TCreateOneArgs,
+  TCreateManyArgs,
+  TUpdateOneArgs,
+  TDeleteOneArgs,
+  TUpsertOneArgs,
+  TTransactionArgs,
+  TCountManyArgs,
+} from '@app/core';
 
 @Injectable()
 export class PrismaStockInfoRepository implements StockInfoRepository {
   constructor(private readonly prisma: UsersPrismaClient) {}
 
-  async findMany(args?: TFindManyArgs<StockInfoFilters, StockInfo>, tx?: TTransactionArgs): Promise<StockInfo[]> {
-    const where = args?.where ? this.buildWhereClause(args.where) : {};
-    
-    const results = await this.prisma.stockInfo.findMany({
-      where,
+  async findMany(
+    args?: TFindManyArgs<StockInfo, StockInfo>,
+  ): Promise<StockInfo[]> {
+    return (await this.prisma.stockInfo.findMany({
+      where: args?.where,
       skip: args?.skip,
       take: args?.take,
-      orderBy: { Ticker: 'asc' },
-    });
-
-    return results;
+      orderBy: args?.orderBy || { Ticker: 'asc' },
+    })) as unknown as StockInfo[];
   }
 
-  async findOne(args: TFindOneArgs<StockInfoFilters, StockInfo>, tx?: TTransactionArgs): Promise<StockInfo | null> {
-    const where = this.buildWhereClause(args.where);
-    
-    const result = await this.prisma.stockInfo.findFirst({ where });
-    
-    return result;
+  async findOne(
+    args: TFindOneArgs<StockInfo, StockInfo>,
+  ): Promise<StockInfo | null> {
+    return (await this.prisma.stockInfo.findFirst({
+      where: args.where,
+    })) as unknown as StockInfo | null;
   }
 
-  async createOne(args: TCreateOneArgs<StockInfo, StockInfo>, tx?: TTransactionArgs): Promise<StockInfo> {
-    const result = await this.prisma.stockInfo.create({
+  async count(filters: StockInfo): Promise<number> {
+    return await this.prisma.stockInfo.count({ where: filters });
+  }
+
+  async countMany(
+    args?: TCountManyArgs<StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<number> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return await client.stockInfo.count({ where: args?.where });
+  }
+
+  // Implementación de métodos faltantes
+  async transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
+    return await this.prisma.$transaction(fn);
+  }
+
+  async createOne(
+    args: TCreateOneArgs<StockInfo, StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfo> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfo.create({
       data: args.data as PrismaStockInfo,
-    });
-
-    return result;
+    })) as StockInfo;
   }
 
-  async updateOne(args: TUpdateOneArgs<StockInfoFilters, StockInfo>, tx?: TTransactionArgs): Promise<StockInfo> {
-    const result = await this.prisma.stockInfo.update({
+  async createMany(
+    args: TCreateManyArgs<StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<void> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    await client.stockInfo.createMany({ data: args.data as PrismaStockInfo[] });
+  }
+
+  async updateOne(
+    args: TUpdateOneArgs<Partial<StockInfo>, StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfo> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfo.update({
       where: { Id: args.where.Id },
       data: args.data as Partial<PrismaStockInfo>,
-    });
-
-    return result;
+    })) as StockInfo;
   }
 
-  async deleteOne(args: TDeleteOneArgs<StockInfoFilters, StockInfo>, tx?: TTransactionArgs): Promise<StockInfo> {
-    const result = await this.prisma.stockInfo.delete({
+  async deleteOne(
+    args: TDeleteOneArgs<Partial<StockInfo>, StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfo> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfo.delete({
       where: { Id: args.where.Id },
-    });
-
-    return result;
+    })) as StockInfo;
   }
 
-  async count(filters: StockInfoFilters): Promise<number> {
-    const where = this.buildWhereClause(filters);
-    return this.prisma.stockInfo.count({ where });
+  async upsertOne(
+    args: TUpsertOneArgs<Partial<StockInfo>, StockInfo>,
+    tx?: TTransactionArgs,
+  ): Promise<StockInfo> {
+    const client = tx ? (tx as UsersPrismaClient) : this.prisma;
+    return (await client.stockInfo.upsert({
+      where: { Id: args.where.Id },
+      update: args.update as Partial<PrismaStockInfo>,
+      create: args.create as PrismaStockInfo,
+    })) as StockInfo;
   }
 
   async findByTicker(ticker: string): Promise<StockInfo | null> {
@@ -104,20 +150,5 @@ export class PrismaStockInfoRepository implements StockInfoRepository {
     });
 
     return results;
-  }
-
-  private buildWhereClause(filters: StockInfoFilters) {
-    return {
-      ...(filters.Id && { Id: filters.Id }),
-      ...(filters.Ticker && { Ticker: { contains: filters.Ticker } }),
-      ...(filters.Name && { Name: { contains: filters.Name } }),
-      ...(filters.Country && { Country: { contains: filters.Country } }),
-      ...(filters.Exchange && { Exchange: filters.Exchange }),
-      ...(filters.Currency && { Currency: filters.Currency }),
-      ...(filters.Type && { Type: filters.Type }),
-      ...(filters.Sector && { Sector: { contains: filters.Sector } }),
-      ...(filters.Industry && { Industry: { contains: filters.Industry } }),
-      ...(filters.IsDelisted !== undefined && { IsDelisted: filters.IsDelisted }),
-    };
   }
 }
