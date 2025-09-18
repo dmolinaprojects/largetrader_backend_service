@@ -3,6 +3,7 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { EodWebSocketService, EodMarketData } from './eod-websocket.service';
 import { ClientSessionService } from './client-session.service';
 import { SubscriptionService } from './subscription.service';
+import { MarketDataTransformerService } from '../../market-data/services/market-data-transformer.service';
 
 @Injectable()
 export class WebSocketCoordinatorService implements OnModuleInit {
@@ -12,6 +13,7 @@ export class WebSocketCoordinatorService implements OnModuleInit {
     private readonly eodWebSocketService: EodWebSocketService,
     private readonly clientSessionService: ClientSessionService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly marketDataTransformer: MarketDataTransformerService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -30,12 +32,20 @@ export class WebSocketCoordinatorService implements OnModuleInit {
     symbols: string[],
   ): Promise<void> {
     try {
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleClientSubscribe] Starting subscription process for client ${clientId} with symbols: ${symbols.join(', ')}`,
+      );
+
       // Agregar suscripciones del cliente
       await this.subscriptionService.addClientSubscriptions(clientId, symbols);
 
       // Obtener todas las suscripciones activas
       const activeSubscriptions =
         await this.subscriptionService.getActiveSubscriptions();
+
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleClientSubscribe] Active subscriptions: ${activeSubscriptions.length}`,
+      );
 
       // Conectar a EOD si no está conectado
       if (
@@ -140,31 +150,41 @@ export class WebSocketCoordinatorService implements OnModuleInit {
 
   private async handleEodMarketData(data: EodMarketData): Promise<void> {
     try {
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleEodMarketData] 📊 Received market data from EOD: ${JSON.stringify(data)}`,
+      );
+
       // Obtener todos los suscriptores para este símbolo
       const subscribers =
         await this.subscriptionService.getSubscribersForSymbol(data.s);
 
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleEodMarketData] Found ${subscribers.length} subscribers for symbol ${data.s}`,
+      );
+
       if (subscribers.length === 0) {
-        this.logger.debug(
+        this.logger.warn(
           `[WebSocketCoordinatorService.handleEodMarketData] No subscribers for symbol ${data.s}`,
         );
         return;
       }
 
-      // Difundir datos a todos los suscriptores
-      await this.broadcastToSubscribers(data.s, {
-        symbol: data.s,
-        ask: data.a,
-        bid: data.b,
-        price: (data.a + data.b) / 2, // Precio medio
-        change: data.dc,
-        changePercent: data.dd,
-        timestamp: data.t,
-        receivedAt: Date.now(),
+      // ✅ USAR EL TRANSFORMADOR para convertir datos EOD a formato del usuario
+      const transformedData = await this.marketDataTransformer.transformEodToUserFormat({
+        s: data.s,
+        a: data.a,
+        b: data.b,
+        timestamp: data.timestamp,
       });
 
-      this.logger.debug(
-        `[WebSocketCoordinatorService.handleEodMarketData] Broadcasted data for ${data.s} to ${subscribers.length} subscribers`,
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleEodMarketData] Transformed data: ${JSON.stringify(transformedData)}`,
+      );
+
+      await this.broadcastToSubscribers(data.s, transformedData);
+
+      this.logger.info(
+        `[WebSocketCoordinatorService.handleEodMarketData] ✅ Broadcasted transformed data for ${data.s} to ${subscribers.length} subscribers`,
       );
     } catch (error) {
       this.logger.error(
@@ -180,14 +200,26 @@ export class WebSocketCoordinatorService implements OnModuleInit {
     const subscribers =
       await this.subscriptionService.getSubscribersForSymbol(symbol);
 
+    this.logger.info(
+      `[WebSocketCoordinatorService.broadcastToSubscribers] Broadcasting to ${subscribers.length} subscribers for symbol ${symbol}`,
+    );
+
     for (const clientId of subscribers) {
       const session = await this.clientSessionService.getClient(clientId);
       if (session && session.socket) {
+        this.logger.info(
+          `[WebSocketCoordinatorService.broadcastToSubscribers] Sending data to client ${clientId}`,
+        );
+        
         session.socket.emit('market_data', {
           symbol,
           data,
           timestamp: Date.now(),
         });
+      } else {
+        this.logger.warn(
+          `[WebSocketCoordinatorService.broadcastToSubscribers] No active session found for client ${clientId}`,
+        );
       }
     }
   }

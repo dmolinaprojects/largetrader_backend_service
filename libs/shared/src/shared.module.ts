@@ -23,6 +23,8 @@ import { PrismaForexGlobal5mRepository } from './infrastructure/repositories/sto
 import { PrismaForexGlobal15mRepository } from './infrastructure/repositories/stocks/prisma-forex-global-15m.repository';
 import { PrismaForexGlobalH1Repository } from './infrastructure/repositories/stocks/prisma-forex-global-h1.repository';
 import { PrismaSettingsRepository } from './infrastructure/repositories/stocks/prisma-settings.repository';
+import { PrismaRealTimeDataRepository } from './infrastructure/repositories/stocks/prisma-real-time-data.repository';
+import { PrismaLogLastTickersRepository } from './infrastructure/repositories/users/prisma-log-last-tickers.repository';
 
 @Global()
 @Module({
@@ -120,6 +122,14 @@ import { PrismaSettingsRepository } from './infrastructure/repositories/stocks/p
       provide: 'SettingsRepository',
       useClass: PrismaSettingsRepository,
     },
+    {
+      provide: 'RealTimeDataRepository',
+      useClass: PrismaRealTimeDataRepository,
+    },
+    {
+      provide: 'LogLastTickersRepository',
+      useClass: PrismaLogLastTickersRepository,
+    },
   ],
   exports: [
     'UsersRepository',
@@ -143,6 +153,8 @@ import { PrismaSettingsRepository } from './infrastructure/repositories/stocks/p
     'ForexGlobal15mRepository',
     'ForexGlobalH1Repository',
     'SettingsRepository',
+    'RealTimeDataRepository',
+    'LogLastTickersRepository',
   ],
 })
 export class SharedModule {}

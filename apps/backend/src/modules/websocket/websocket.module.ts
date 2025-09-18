@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -16,7 +18,9 @@ import { EodWebSocketService } from './services/eod-websocket.service';
 import { ClientSessionService } from './services/client-session.service';
 import { SubscriptionService } from './services/subscription.service';
 import { WebSocketCoordinatorService } from './services/websocket-coordinator.service';
+import { TickerMonitorService } from './services/ticker-monitor.service';
 import { WebSocketMonitorController } from './controllers/websocket-monitor.controller';
+import { MarketDataTransformerService } from '../market-data/services/market-data-transformer.service';
 import { SharedModule } from '../../shared/shared.module';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { TokenService } from '../../shared/token/token-service';
@@ -41,10 +45,16 @@ export class RealtimeGateway
     private readonly subscriptionService: SubscriptionService,
     private readonly eodWebSocketService: EodWebSocketService,
     private readonly webSocketCoordinator: WebSocketCoordinatorService,
-  ) {}
+  ) {
+    this.logger.info('[RealtimeGateway] WebSocket Gateway initialized');
+  }
 
   async handleConnection(client: Socket) {
     try {
+      this.logger.info(
+        `[RealtimeGateway.handleConnection] New client attempting connection: ${client.id}`,
+      );
+
       // Extraer token del handshake
       const token = this.extractTokenFromHandshake(client);
 
@@ -52,12 +62,24 @@ export class RealtimeGateway
         this.logger.warn(
           `[RealtimeGateway.handleConnection] No token provided for client ${client.id}`,
         );
+        client.emit('error', { 
+          message: 'Authentication required. Please provide a valid token.',
+          code: 'NO_TOKEN' 
+        });
         client.disconnect();
         return;
       }
 
+      this.logger.debug(
+        `[RealtimeGateway.handleConnection] Token found for client ${client.id}`,
+      );
+
       // Verificar token JWT
       const payload = this.tokenService.validateToken(token, 'access');
+
+      this.logger.debug(
+        `[RealtimeGateway.handleConnection] Token validated for client ${client.id}, user: ${payload.email}`,
+      );
 
       // Registrar sesión del cliente
       await this.clientSessionService.addClient(client.id, {
@@ -80,11 +102,20 @@ export class RealtimeGateway
         message: 'Connected to realtime data stream',
         clientId: client.id,
         userId: payload.sub,
+        timestamp: Date.now(),
       });
     } catch (error) {
       this.logger.error(
         `[RealtimeGateway.handleConnection] Authentication failed for client ${client.id}: ${error.message}`,
       );
+      
+      // Enviar error específico antes de desconectar
+      client.emit('error', { 
+        message: 'Authentication failed. Please check your token.',
+        code: 'AUTH_FAILED',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+      
       client.disconnect();
     }
   }
@@ -99,9 +130,16 @@ export class RealtimeGateway
     @MessageBody() data: { symbols: string[] },
   ) {
     try {
+      this.logger.info(
+        `[RealtimeGateway.handleSubscribe] Received subscription request from client ${client.id} for symbols: ${JSON.stringify(data)}`,
+      );
+
       const session = await this.clientSessionService.getClient(client.id);
 
       if (!session) {
+        this.logger.warn(
+          `[RealtimeGateway.handleSubscribe] Client session not found for client ${client.id}`,
+        );
         client.emit('error', { message: 'Client session not found' });
         return;
       }
@@ -114,6 +152,10 @@ export class RealtimeGateway
       await this.webSocketCoordinator.handleClientSubscribe(
         client.id,
         data.symbols,
+      );
+
+      this.logger.info(
+        `[RealtimeGateway.handleSubscribe] Successfully processed subscription for client ${client.id}`,
       );
 
       // Confirmar suscripción
@@ -196,13 +238,28 @@ export class RealtimeGateway
   }
 
   private extractTokenFromHandshake(client: Socket): string | null {
+    // Intentar extraer token del header Authorization
     const authHeader = client.handshake.headers.authorization;
-    if (!authHeader) {
-      return null;
+    if (authHeader) {
+      const [type, token] = authHeader.split(' ');
+      if (type === 'Bearer' && token) {
+        return token;
+      }
     }
 
-    const [type, token] = authHeader.split(' ');
-    return type === 'Bearer' ? token : null;
+    // Intentar extraer token del auth object (Socket.IO auth)
+    const authToken = client.handshake.auth?.token as string;
+    if (authToken) {
+      return authToken;
+    }
+
+    // Intentar extraer token del query parameter
+    const tokenFromQuery = client.handshake.query.token as string;
+    if (tokenFromQuery) {
+      return tokenFromQuery;
+    }
+
+    return null;
   }
 
   private setupInactivityTimeout(client: Socket): void {
@@ -282,6 +339,8 @@ export class RealtimeGateway
 @Module({
   imports: [
     SharedModule,
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -294,16 +353,22 @@ export class RealtimeGateway
   ],
   controllers: [WebSocketMonitorController],
   providers: [
+    RealtimeGateway,
     EodWebSocketService,
     ClientSessionService,
     SubscriptionService,
     WebSocketCoordinatorService,
+    TickerMonitorService,
+    MarketDataTransformerService,
   ],
   exports: [
+    RealtimeGateway,
     EodWebSocketService,
     ClientSessionService,
     SubscriptionService,
     WebSocketCoordinatorService,
+    TickerMonitorService,
+    MarketDataTransformerService,
   ],
 })
 export class WebSocketModule {}

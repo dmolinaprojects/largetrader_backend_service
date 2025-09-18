@@ -9196,3 +9196,16 @@ model watch_lists {
   datesignal DateTime @stocks.Date
   note       String   @stocks.Text
 }
+
+model RealTimeData {
+  id       Int    @id @default(autoincrement())
+  Ticker   String @stocks.VarChar(20)
+  Open     Float
+  High     Float
+  Low      Float
+  Close    Float
+  AskPrice Float
+  AskSize  Int
+  BidPrice Float
+  BidSize  Int
+}
