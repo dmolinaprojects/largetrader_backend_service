@@ -2,16 +2,27 @@ import { Injectable, Inject } from '@nestjs/common';
 import { MarketDataUsaRepository } from '@app/shared';
 import { MarketDataQuery, MarketDataResponse } from '@app/shared';
 import { MarketDataUsa } from '@app/shared';
+import { LogLastTickersRepository } from '@app/shared/domain/repositories/users/log-last-tickers.repository';
 
 @Injectable()
 export class GetMarketDataUseCase {
   constructor(
     @Inject('MarketDataUsaRepository')
     private readonly marketDataUsaRepository: MarketDataUsaRepository,
+    @Inject('LogLastTickersRepository')
+    private readonly logLastTickersRepository: LogLastTickersRepository,
   ) {}
 
   async execute(query: MarketDataQuery): Promise<MarketDataResponse> {
     const { symbol, from, to, limit, order = 'asc' } = query;
+
+    // Registrar actividad del ticker para TickerMonitorService
+    try {
+      await this.logLastTickersRepository.upsertTickerActivity(symbol, new Date());
+    } catch (error) {
+      // No fallar si no se puede registrar la actividad
+      console.warn(`Failed to log ticker activity for ${symbol}:`, error);
+    }
 
     const data = await this.marketDataUsaRepository.findMany({
       where: {

@@ -10,6 +10,7 @@ import { ForexGlobal15mRepository } from '@app/shared/domain/repositories/stocks
 import { ForexGlobalH1Repository } from '@app/shared/domain/repositories/stocks/forex-global-h1.repository';
 import { MarketDataIndexesD1Repository } from '@app/shared/domain/repositories/stocks/market-data-indexes-d1.repository';
 import { MarketDataCommoditiesD1Repository } from '@app/shared/domain/repositories/stocks/market-data-commodities-d1.repository';
+import { LogLastTickersRepository } from '@app/shared/domain/repositories/users/log-last-tickers.repository';
 import { GetHistoricalDataDto, HistoricalDataResponseDto } from '../dto/get-historical-data.dto';
 
 @Injectable()
@@ -37,6 +38,8 @@ export class GetHistoricalDataUseCase {
     private readonly marketDataIndexesD1Repository: MarketDataIndexesD1Repository,
     @Inject('MarketDataCommoditiesD1Repository')
     private readonly marketDataCommoditiesD1Repository: MarketDataCommoditiesD1Repository,
+    @Inject('LogLastTickersRepository')
+    private readonly logLastTickersRepository: LogLastTickersRepository,
   ) {}
 
   async execute(dto: GetHistoricalDataDto): Promise<HistoricalDataResponseDto> {
@@ -46,6 +49,14 @@ export class GetHistoricalDataUseCase {
     const ticker = await this.marketTickersRepository.findByCode(symbol);
     if (!ticker) {
       throw new NotFoundException(`Símbolo ${symbol} no encontrado`);
+    }
+
+    // Registrar actividad del ticker para TickerMonitorService
+    try {
+      await this.logLastTickersRepository.upsertTickerActivity(symbol, new Date());
+    } catch (error) {
+      // No fallar si no se puede registrar la actividad
+      console.warn(`Failed to log ticker activity for ${symbol}:`, error);
     }
 
     // Determinar tipo de activo

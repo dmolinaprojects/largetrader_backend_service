@@ -8,6 +8,9 @@ import { WebSocketCoordinatorService } from './websocket-coordinator.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RealTimeDataRepository } from '@app/shared/domain/repositories/stocks/real-time-data.repository';
 import { LogLastTickersRepository } from '@app/shared/domain/repositories/users/log-last-tickers.repository';
+import { MarketTickersRepository } from '@app/shared/domain/repositories/stocks/market-tickers.repository';
+import { EODHDService } from '../../feed/services/eodhd.service';
+import { RealTimeData } from '@app/shared/domain/models/stocks/real-time-data.model';
 
 export interface TickerMonitorConfig {
   /**
@@ -90,9 +93,14 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     @Inject('LogLastTickersRepository')
     private readonly logLastTickersRepository: LogLastTickersRepository,
+    @Inject('RealTimeDataRepository')
+    private readonly realTimeDataRepository: RealTimeDataRepository,
+    @Inject('MarketTickersRepository')
+    private readonly marketTickersRepository: MarketTickersRepository,
     private readonly clientSessionService: ClientSessionService,
     private readonly subscriptionService: SubscriptionService,
     private readonly webSocketCoordinator: WebSocketCoordinatorService,
+    private readonly eodhdService: EODHDService,
   ) {
     // Configuración por defecto - puedes parametrizarla desde variables de entorno
     this.config = {
@@ -192,35 +200,16 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Maneja los datos de mercado recibidos
+   * Maneja los datos de mercado recibidos y actualiza RealTimeData
    */
-  private handleMarketData(data: any): void {
+  private async handleMarketData(data: any): Promise<void> {
     try {
       this.logger.info(
         `[TickerMonitorService.handleMarketData] 📊 Received market data for ${data.symbol}: ${JSON.stringify(data.data)}`,
       );
 
-      // AQUÍ ES DONDE PUEDES PARAMETRIZAR EL ENVÍO DE DATOS
-      // Este método se llama cada vez que llegan datos de mercado para los tickers monitoreados
-      
-      /*
-      // EJEMPLO DE IMPLEMENTACIÓN - DESCOMENTA Y MODIFICA SEGÚN TUS NECESIDADES:
-      
-      // 1. Guardar en base de datos
-      await this.saveMarketDataToDatabase(data.symbol, data.data);
-      
-      // 2. Enviar a una cola de mensajes
-      await this.sendToMessageQueue(data.symbol, data.data);
-      
-      // 3. Procesar según reglas de negocio
-      await this.processBusinessRules(data.symbol, data.data);
-      
-      // 4. Actualizar caché en tiempo real
-      await this.updateRealTimeCache(data.symbol, data.data);
-      
-      // 5. Enviar notificaciones si se cumplen condiciones
-      await this.checkAndSendNotifications(data.symbol, data.data);
-      */
+      // Actualizar RealTimeData con los datos en tiempo real recibidos
+      await this.updateRealTimeDataFromWebSocket(data.symbol, data.data);
 
       this.logger.debug(
         `[TickerMonitorService.handleMarketData] Market data processed for ${data.symbol}`,
@@ -292,12 +281,17 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
         `[TickerMonitorService.monitorActiveTickers] Found ${activeTickers.length} active tickers: ${activeTickers.join(', ')}`,
       );
 
-      // 2. Determinar cambios necesarios
+      // 2. Obtener última vela de EODHD para cada ticker activo y actualizar RealTimeData
+      if (activeTickers.length > 0) {
+        await this.updateRealTimeDataFromEODHD(activeTickers);
+      }
+
+      // 3. Determinar cambios necesarios para suscripciones WebSocket
       const currentSubs = Array.from(this.currentSubscriptions);
       const tickersToSubscribe = activeTickers.filter(ticker => !this.currentSubscriptions.has(ticker));
       const tickersToUnsubscribe = currentSubs.filter(ticker => !activeTickers.includes(ticker));
 
-      // 3. Suscribir a nuevos tickers
+      // 4. Suscribir a nuevos tickers
       if (tickersToSubscribe.length > 0) {
         this.logger.info(
           `[TickerMonitorService.monitorActiveTickers] 📈 Subscribing to: ${tickersToSubscribe.join(', ')}`,
@@ -306,7 +300,7 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
         await this.subscribeToTickers(tickersToSubscribe);
       }
 
-      // 4. Desuscribir de tickers inactivos
+      // 5. Desuscribir de tickers inactivos
       if (tickersToUnsubscribe.length > 0) {
         this.logger.info(
           `[TickerMonitorService.monitorActiveTickers] 📉 Unsubscribing from: ${tickersToUnsubscribe.join(', ')}`,
@@ -334,26 +328,67 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Obtiene los tickers que han sido consultados recientemente
+   * TEMPORAL: Trae el primer registro sin importar la fecha para testing
+   * VALIDADO: Solo tickers compatibles con EOD WebSocket
    */
   private async getActiveTickers(): Promise<string[]> {
     try {
-      const thresholdDate = new Date(Date.now() - this.config.activeThresholdMinutes * 60 * 1000);
-      
-      this.logger.debug(
-        `[TickerMonitorService.getActiveTickers] Looking for tickers updated after: ${thresholdDate.toISOString()}`,
+      this.logger.info(
+        `[TickerMonitorService.getActiveTickers] 🔧 TEMPORAL MODE: Getting first ticker from LogLastTickers (ignoring time threshold)`,
       );
 
-      const activeTickers = await this.logLastTickersRepository.findActiveTickers(thresholdDate);
+      // TEMPORAL: Obtener el primer registro de la tabla sin filtro de fecha
+      const allTickers = await this.logLastTickersRepository.findMany({
+        take: 5, // Obtener más tickers para tener opciones
+        orderBy: { Date: 'desc' }
+      });
 
-      const tickerCodes = activeTickers
-        .filter(ticker => ticker.Ticker !== null)
-        .map(ticker => ticker.Ticker as string);
+      const validTickers: string[] = [];
 
-      this.logger.debug(
-        `[TickerMonitorService.getActiveTickers] Found ${tickerCodes.length} active tickers in database`,
+      for (const ticker of allTickers) {
+        if (ticker.Ticker) {
+          try {
+            // Validar que el ticker existe en market_tickers
+            const marketTicker = await this.marketTickersRepository.findByCode(ticker.Ticker);
+            
+            if (!marketTicker) {
+              this.logger.warn(
+                `[TickerMonitorService.getActiveTickers] Ticker ${ticker.Ticker} not found in market_tickers, skipping`,
+              );
+              continue;
+            }
+
+            if (!marketTicker.Enabled) {
+              this.logger.warn(
+                `[TickerMonitorService.getActiveTickers] Ticker ${ticker.Ticker} is disabled, skipping`,
+              );
+              continue;
+            }
+
+            // Solo procesar tickers de tipo 'stock' que EOD WebSocket acepta
+            if (marketTicker.Type === 'stock' || marketTicker.Type === 'index' || marketTicker.Type === 'commodity') {
+              validTickers.push(ticker.Ticker);
+              this.logger.info(
+                `[TickerMonitorService.getActiveTickers] ✅ Valid ticker: ${ticker.Ticker} (${marketTicker.Type})`,
+              );
+            } else {
+              this.logger.warn(
+                `[TickerMonitorService.getActiveTickers] Ticker ${ticker.Ticker} type '${marketTicker.Type}' not supported by EOD WebSocket, skipping`,
+              );
+            }
+          } catch (error) {
+            this.logger.error(
+              `[TickerMonitorService.getActiveTickers] Error validating ticker ${ticker.Ticker}: ${error.message}`,
+            );
+          }
+        }
+      }
+
+      this.logger.info(
+        `[TickerMonitorService.getActiveTickers] Found ${validTickers.length} valid tickers for EOD WebSocket: ${validTickers.join(', ')}`,
       );
 
-      return tickerCodes;
+      return validTickers;
     } catch (error) {
       this.logger.error(
         `[TickerMonitorService.getActiveTickers] Error fetching active tickers: ${error.message}`,
@@ -474,53 +509,115 @@ export class TickerMonitorService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // MÉTODOS PARA PARAMETRIZAR - IMPLEMENTA SEGÚN TUS NECESIDADES
-
-  /*
-  // Ejemplo: Guardar datos en una tabla específica
-  private async saveMarketDataToDatabase(symbol: string, marketData: any): Promise<void> {
+  /**
+   * Obtiene la última vela de EODHD para tickers activos y actualiza RealTimeData
+   */
+  private async updateRealTimeDataFromEODHD(tickers: string[]): Promise<void> {
     try {
-      // Implementar según tu esquema de base de datos
-      // await this.yourRepository.insertMarketData({
-      //   symbol,
-      //   price: marketData.price,
-      //   timestamp: new Date(marketData.timestamp),
-      //   // ... otros campos
-      // });
-      
-      this.logger.debug(`Market data saved for ${symbol}`);
+      this.logger.info(
+        `[TickerMonitorService.updateRealTimeDataFromEODHD] 📈 Updating RealTimeData for ${tickers.length} tickers from EODHD`,
+      );
+
+      // Obtener datos históricos de 1 día para cada ticker (última vela)
+      const historicalData = await this.eodhdService.getMultipleHistoricalData(tickers, 1, 'd');
+
+      for (const tickerData of historicalData) {
+        if (tickerData.data && tickerData.data.length > 0) {
+          const lastCandle = tickerData.data[tickerData.data.length - 1];
+          const ticker = tickerData.code.replace('.US', ''); // Remover .US del código
+
+          // Crear datos para RealTimeData (sin splits, como dice la conversación)
+          const realTimeData: Omit<RealTimeData, 'id'> = {
+            Ticker: ticker,
+            Open: lastCandle.open,
+            High: lastCandle.high,
+            Low: lastCandle.low,
+            Close: lastCandle.close,
+            AskPrice: lastCandle.close, // Usar close como AskPrice por defecto
+            AskSize: 0, // No disponible en datos históricos
+            BidPrice: lastCandle.close, // Usar close como BidPrice por defecto
+            BidSize: 0, // No disponible en datos históricos
+          };
+
+          // Buscar si ya existe un registro para este ticker
+          const existingData = await this.realTimeDataRepository.findByTicker(ticker);
+          
+          if (existingData.length > 0) {
+            // Actualizar el registro existente
+            await this.realTimeDataRepository.updateOne({
+              where: { id: existingData[0].id },
+              data: realTimeData,
+            });
+          } else {
+            // Crear nuevo registro
+            await this.realTimeDataRepository.createOne({
+              data: realTimeData as RealTimeData,
+            });
+          }
+
+          this.logger.debug(
+            `[TickerMonitorService.updateRealTimeDataFromEODHD] ✅ Updated RealTimeData for ${ticker}: O=${lastCandle.open}, H=${lastCandle.high}, L=${lastCandle.low}, C=${lastCandle.close}`,
+          );
+        }
+      }
+
+      this.logger.info(
+        `[TickerMonitorService.updateRealTimeDataFromEODHD] ✅ Successfully updated RealTimeData for ${tickers.length} tickers`,
+      );
+
     } catch (error) {
-      this.logger.error(`Error saving market data for ${symbol}: ${error.message}`);
+      this.logger.error(
+        `[TickerMonitorService.updateRealTimeDataFromEODHD] Error updating RealTimeData from EODHD: ${error.message}`,
+      );
     }
   }
 
-  // Ejemplo: Enviar a cola de mensajes
-  private async sendToMessageQueue(symbol: string, marketData: any): Promise<void> {
+  /**
+   * Actualiza RealTimeData con datos en tiempo real del WebSocket
+   */
+  private async updateRealTimeDataFromWebSocket(ticker: string, marketData: any): Promise<void> {
     try {
-      // await this.messageQueue.send('market-data-topic', {
-      //   symbol,
-      //   data: marketData,
-      //   timestamp: Date.now()
-      // });
-      
-      this.logger.debug(`Market data sent to queue for ${symbol}`);
-    } catch (error) {
-      this.logger.error(`Error sending to queue for ${symbol}: ${error.message}`);
-    }
-  }
+      this.logger.debug(
+        `[TickerMonitorService.updateRealTimeDataFromWebSocket] 📊 Updating RealTimeData for ${ticker} from WebSocket`,
+      );
 
-  // Ejemplo: Procesar reglas de negocio
-  private async processBusinessRules(symbol: string, marketData: any): Promise<void> {
-    try {
-      // Implementar tus reglas de negocio específicas
-      // if (marketData.price > someThreshold) {
-      //   await this.triggerAlert(symbol, marketData);
-      // }
+      // Mapear datos del WebSocket al formato de RealTimeData
+      const realTimeData: Partial<Omit<RealTimeData, 'id'>> = {
+        Ticker: ticker,
+        Open: marketData.open || marketData.Open,
+        High: marketData.high || marketData.High,
+        Low: marketData.low || marketData.Low,
+        Close: marketData.close || marketData.Close,
+        AskPrice: marketData.askPrice || marketData.AskPrice || marketData.close || marketData.Close,
+        AskSize: marketData.askSize || marketData.AskSize || 0,
+        BidPrice: marketData.bidPrice || marketData.BidPrice || marketData.close || marketData.Close,
+        BidSize: marketData.bidSize || marketData.BidSize || 0,
+      };
+
+      // Buscar si ya existe un registro para este ticker
+      const existingData = await this.realTimeDataRepository.findByTicker(ticker);
       
-      this.logger.debug(`Business rules processed for ${symbol}`);
+      if (existingData.length > 0) {
+        // Actualizar el registro existente
+        await this.realTimeDataRepository.updateOne({
+          where: { id: existingData[0].id },
+          data: realTimeData as Omit<RealTimeData, 'id'>,
+        });
+      } else {
+        // Crear nuevo registro
+        await this.realTimeDataRepository.createOne({
+          data: realTimeData as RealTimeData,
+        });
+      }
+
+      this.logger.debug(
+        `[TickerMonitorService.updateRealTimeDataFromWebSocket] ✅ Updated RealTimeData for ${ticker} from WebSocket`,
+      );
+
     } catch (error) {
-      this.logger.error(`Error processing business rules for ${symbol}: ${error.message}`);
+      this.logger.error(
+        `[TickerMonitorService.updateRealTimeDataFromWebSocket] Error updating RealTimeData for ${ticker}: ${error.message}`,
+      );
     }
   }
-  */
 }

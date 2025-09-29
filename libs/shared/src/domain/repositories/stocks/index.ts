@@ -2,6 +2,7 @@ export * from './stock-info.repository';
 export * from './stock-info-technicals.repository';
 export * from './stock-info-earnings.repository';
 export * from './tickers.repository';
+export * from './market-tickers.repository';
 export * from './market-data-usa.repository';
 export * from './forex-global-d1.repository';
 export * from './crypto-global-d1.repository';

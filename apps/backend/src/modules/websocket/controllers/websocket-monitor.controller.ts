@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiOperation,
   ApiTags,
@@ -8,6 +8,7 @@ import {
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { WebSocketCoordinatorService } from '../services/websocket-coordinator.service';
+import { TickerMonitorService } from '../services/ticker-monitor.service';
 
 @ApiTags('WebSocket Monitor')
 @Controller('websocket')
@@ -18,6 +19,7 @@ export class WebSocketMonitorController {
     @InjectPinoLogger(WebSocketMonitorController.name)
     private readonly logger: PinoLogger,
     private readonly webSocketCoordinator: WebSocketCoordinatorService,
+    private readonly tickerMonitorService: TickerMonitorService,
   ) {}
 
   @ApiOperation({
@@ -140,5 +142,52 @@ export class WebSocketMonitorController {
     );
 
     return status;
+  }
+
+  @ApiOperation({
+    summary: 'Get TickerMonitor status',
+    description: 'Get the current status of the TickerMonitor service',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'TickerMonitor status retrieved successfully',
+  })
+  @Get('ticker-monitor/status')
+  async getTickerMonitorStatus() {
+    this.logger.info(
+      `[WebSocketMonitorController.getTickerMonitorStatus] Getting TickerMonitor status`,
+    );
+
+    const status = this.tickerMonitorService.getMonitoringStatus();
+
+    this.logger.info(
+      `[WebSocketMonitorController.getTickerMonitorStatus] TickerMonitor status: ${JSON.stringify(status)}`,
+    );
+
+    return status;
+  }
+
+
+  @ApiOperation({
+    summary: 'Update ticker last access',
+    description: 'Manually update a ticker last access time',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ticker last access updated successfully',
+  })
+  @Post('ticker-monitor/update-ticker/:ticker')
+  async updateTickerLastAccess(ticker: string) {
+    this.logger.info(
+      `[WebSocketMonitorController.updateTickerLastAccess] Updating ticker: ${ticker}`,
+    );
+
+    await this.tickerMonitorService.updateTickerLastAccess(ticker);
+
+    this.logger.info(
+      `[WebSocketMonitorController.updateTickerLastAccess] Ticker ${ticker} updated successfully`,
+    );
+
+    return { message: `Ticker ${ticker} last access updated successfully` };
   }
 }

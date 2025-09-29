@@ -24,6 +24,7 @@ import { MarketDataTransformerService } from '../market-data/services/market-dat
 import { SharedModule } from '../../shared/shared.module';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { TokenService } from '../../shared/token/token-service';
+import { FeedModule } from '../feed/feed.module';
 
 @WebSocketGateway({
   cors: {
@@ -339,6 +340,7 @@ export class RealtimeGateway
 @Module({
   imports: [
     SharedModule,
+    FeedModule,
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     JwtModule.registerAsync({

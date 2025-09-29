@@ -29,6 +29,7 @@ import { SignalsModule } from './modules/signals/signals.module';
 import { StocksModule } from './modules/stocks/stocks.module';
 import { MarketDataModule } from './modules/market-data/market-data.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { EODModule } from './modules/eod/eod.module';
 
 @Module({
   controllers: [],
@@ -59,7 +60,7 @@ import { FeedModule } from './modules/feed/feed.module';
     StocksModule,
     MarketDataModule,
     FeedModule,
-
+    EODModule,
     HealthModule,
   ],
   providers: [DocsJwtAuthorizer, ConfigService, JwtService],
